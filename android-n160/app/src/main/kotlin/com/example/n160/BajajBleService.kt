@@ -14,8 +14,8 @@ class BajajBleService : Service() {
 
     companion object {
         private const val TAG = "BajajBleService"
-        const val CHANNEL_ID = "n160_ugp_service_v2"
-        const val NOTIFICATION_ID = 2024
+        const val CHANNEL_ID = "n160_ugp_service_v4"
+        const val NOTIFICATION_ID = 2026
 
         const val ACTION_START = "com.example.n160.action.START"
         const val ACTION_STOP = "com.example.n160.action.STOP"
