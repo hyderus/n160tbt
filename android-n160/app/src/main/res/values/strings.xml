@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">N160</string>
+    <string name="accessibility_service_description">Automatically focuses the destination search bar when launching Google Maps from the N160 dashboard.</string>
+</resources>

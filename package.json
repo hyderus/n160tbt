@@ -1,0 +1,18 @@
+{
+  "name": "n160",
+  "version": "1.0.0",
+  "description": "Bajaj Pulsar N160 Motorcycle Companion & Interactive Digital Cluster",
+  "main": "n160.html",
+  "scripts": {
+    "start": "npx serve ."
+  },
+  "keywords": [
+    "pulsar",
+    "n160",
+    "telematics",
+    "dashboard",
+    "cluster"
+  ],
+  "author": "",
+  "license": "MIT"
+}

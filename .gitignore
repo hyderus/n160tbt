@@ -1,0 +1,43 @@
+# Gradle & Build artifacts
+.gradle/
+build/
+app/build/
+android-n160/app/build/
+android-n160/.gradle/
+android-n160/local.properties
+*.iml
+.idea/
+local.properties
+
+# Python & Analysis scripts
+*.py
+__pycache__/
+pulled_apks/
+scratch/
+_
+
+# PowerShell scratch scripts
+*.ps1
+
+# Temporary logs, xml dumps, text dumps
+*.log
+*.tmp
+*_dump.xml
+*dump*.xml
+scratch/
+
+# Ignore runtime screencaps and images
+*.png
+*.jpg
+
+# Whitelist app icons, logos, and APK
+!icon-192.png
+!icon-512.png
+!logo.png
+!n160_usd_black.jpg
+!android-n160/app/src/main/assets/icon-192.png
+!android-n160/app/src/main/assets/icon-512.png
+!android-n160/app/src/main/assets/logo.png
+!android-n160/app/src/main/assets/n160_usd_black.jpg
+!android-n160/app/src/main/res/**/*.png
+!n160.apk
