@@ -41,6 +41,7 @@ class MainActivity : ComponentActivity(), BajajBleManager.BleListener, GoogleMap
 
     private lateinit var webView: WebView
     private lateinit var bleManager: BajajBleManager
+    private lateinit var updateManager: AppUpdateManager
     private var serviceBound = false
     private var rootLayout: android.widget.FrameLayout? = null
     private var fileUploadCallback: ValueCallback<Array<Uri>>? = null
@@ -107,6 +108,9 @@ class MainActivity : ComponentActivity(), BajajBleManager.BleListener, GoogleMap
         // Initialize fallback bleManager until service connects
         bleManager = BajajBleService.instance?.bleManager ?: BajajBleManager(this)
         bleManager.addListener(this)
+
+        // Initialize update manager
+        updateManager = AppUpdateManager(this)
 
         // Register Google Maps notification listener callback
         GoogleMapsNotificationListener.setListener(this)
@@ -235,6 +239,25 @@ class MainActivity : ComponentActivity(), BajajBleManager.BleListener, GoogleMap
         })
 
         checkAndRequestPermissions()
+        handleUpdateIntent(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleUpdateIntent(intent)
+    }
+
+    private fun handleUpdateIntent(intent: Intent?) {
+        if (intent?.action == "ACTION_OPEN_UPDATE" || intent?.hasExtra("NEW_VERSION_NAME") == true) {
+            val name = intent.getStringExtra("NEW_VERSION_NAME") ?: "Latest"
+            val code = intent.getIntExtra("NEW_VERSION_CODE", 0)
+            val notes = (intent.getStringExtra("RELEASE_NOTES") ?: "").replace("'", "\\'").replace("\n", " ")
+            val apkUrl = (intent.getStringExtra("APK_URL") ?: "").replace("'", "\\'")
+            webView.postDelayed({
+                val js = "if (window.onAppUpdateAvailable) { window.onAppUpdateAvailable('$name', $code, '$notes', '$apkUrl'); if (window.openUpdateModal) { window.openUpdateModal(); } }"
+                webView.evaluateJavascript(js, null)
+            }, 800)
+        }
     }
 
     private fun startBleForegroundService() {
@@ -251,11 +274,23 @@ class MainActivity : ComponentActivity(), BajajBleManager.BleListener, GoogleMap
         }
     }
 
-        override fun onResume() {
+    override fun onResume() {
         super.onResume()
         webView.evaluateJavascript("if (window.checkGmapsSyncStatus) { window.checkGmapsSyncStatus(); }", null)
         if (::bleManager.isInitialized && !bleManager.isConnectedOrConnecting()) {
             bleManager.startScan()
+        }
+
+        // Check for pending APK install after returning from settings
+        if (::updateManager.isInitialized) {
+            updateManager.checkPendingInstallOnResume()
+            // Silent update check in background
+            updateManager.checkForUpdate(isManualCheck = false) { result ->
+                if (result is AppUpdateManager.UpdateCheckResult.Available) {
+                    val js = "if (window.onAppUpdateAvailable) { window.onAppUpdateAvailable('${result.info.versionName}', ${result.info.versionCode}, '${result.info.releaseNotes.replace("'", "\\'").replace("\n", " ")}', '${result.info.apkUrl}'); }"
+                    webView.post { webView.evaluateJavascript(js, null) }
+                }
+            }
         }
     }
 
@@ -609,5 +644,61 @@ class MainActivity : ComponentActivity(), BajajBleManager.BleListener, GoogleMap
 
         @JavascriptInterface
         fun isNativeApp(): Boolean = true
+
+        @JavascriptInterface
+        fun getAppVersionName(): String {
+            return if (::updateManager.isInitialized) updateManager.getCurrentVersionName() else "1.2"
+        }
+
+        @JavascriptInterface
+        fun getAppVersionCode(): Int {
+            return if (::updateManager.isInitialized) updateManager.getCurrentVersionCode() else 3
+        }
+
+        @JavascriptInterface
+        fun checkForUpdate(isManual: Boolean) {
+            if (!::updateManager.isInitialized) return
+            updateManager.checkForUpdate(isManualCheck = isManual) { result ->
+                when (result) {
+                    is AppUpdateManager.UpdateCheckResult.Available -> {
+                        val cleanNotes = result.info.releaseNotes.replace("'", "\\'").replace("\n", " ")
+                        val js = "if (window.onUpdateCheckResult) { window.onUpdateCheckResult('AVAILABLE', JSON.stringify({versionName: '${result.info.versionName}', versionCode: ${result.info.versionCode}, releaseNotes: '$cleanNotes', apkUrl: '${result.info.apkUrl}'})); }"
+                        webView.post { webView.evaluateJavascript(js, null) }
+                    }
+                    is AppUpdateManager.UpdateCheckResult.Latest -> {
+                        val js = "if (window.onUpdateCheckResult) { window.onUpdateCheckResult('LATEST', JSON.stringify({versionName: '${result.currentName}', versionCode: ${result.currentCode}})); }"
+                        webView.post { webView.evaluateJavascript(js, null) }
+                    }
+                    is AppUpdateManager.UpdateCheckResult.Error -> {
+                        val cleanErr = result.error.replace("'", "\\'").replace("\n", " ")
+                        val js = "if (window.onUpdateCheckResult) { window.onUpdateCheckResult('ERROR', JSON.stringify({error: '$cleanErr'})); }"
+                        webView.post { webView.evaluateJavascript(js, null) }
+                    }
+                }
+            }
+        }
+
+        @JavascriptInterface
+        fun downloadAndInstallUpdate(apkUrl: String) {
+            if (!::updateManager.isInitialized) return
+            runOnUiThread {
+                Toast.makeText(this@MainActivity, "Downloading Pulsar N160 update...", Toast.LENGTH_SHORT).show()
+                updateManager.downloadAndInstallUpdate(
+                    apkUrl = apkUrl,
+                    onProgress = { progress, currentBytes, totalBytes ->
+                        val js = "if (window.onUpdateDownloadProgress) { window.onUpdateDownloadProgress($progress, $currentBytes, $totalBytes); }"
+                        webView.post { webView.evaluateJavascript(js, null) }
+                    },
+                    onError = { errorMsg ->
+                        val cleanErr = errorMsg.replace("'", "\\'").replace("\n", " ")
+                        val js = "if (window.onUpdateDownloadError) { window.onUpdateDownloadError('$cleanErr'); }"
+                        webView.post {
+                            webView.evaluateJavascript(js, null)
+                            Toast.makeText(this@MainActivity, errorMsg, Toast.LENGTH_LONG).show()
+                        }
+                    }
+                )
+            }
+        }
     }
 }

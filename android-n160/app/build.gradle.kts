@@ -11,13 +11,29 @@ android {
     applicationId = "com.bajaj.n160"
     minSdk = 24
     targetSdk = 36
-    versionCode = 2
-    versionName = "1.1"
+    versionCode = 3
+    versionName = "1.2"
+  }
+
+  signingConfigs {
+    create("release") {
+      storeFile = file("n160-release.jks")
+      storePassword = "pulsar160usd"
+      keyAlias = "n160"
+      keyPassword = "pulsar160usd"
+      enableV1Signing = true
+      enableV2Signing = true
+      enableV3Signing = true
+    }
   }
 
   buildTypes {
-    release {
+    getByName("debug") {
+      signingConfig = signingConfigs.getByName("release")
+    }
+    getByName("release") {
       isMinifyEnabled = false
+      signingConfig = signingConfigs.getByName("release")
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
     }
   }

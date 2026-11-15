@@ -34,6 +34,10 @@ class BajajBleService : Service() {
     var currentBatteryPct: Int = 85
         private set
 
+    private var updateManager: AppUpdateManager? = null
+    private val updateHandler = Handler(Looper.getMainLooper())
+    private var updateCheckRunnable: Runnable? = null
+
     inner class LocalBinder : Binder() {
         fun getService(): BajajBleService = this@BajajBleService
     }
@@ -58,6 +62,22 @@ class BajajBleService : Service() {
         registerBatteryMonitor()
         createNotificationChannel()
         startInForeground("Pulsar N160", "Service active")
+
+        // Start background app update checker
+        updateManager = AppUpdateManager(applicationContext)
+        updateCheckRunnable = object : Runnable {
+            override fun run() {
+                try {
+                    updateManager?.checkForUpdate(isManualCheck = false) { /* Notification posted automatically */ }
+                } catch (e: Exception) {
+                    Log.w(TAG, "Background update check failed", e)
+                }
+                // Check every 30 minutes while service runs
+                updateHandler.postDelayed(this, 30 * 60 * 1000L)
+            }
+        }
+        // Run first check 10 seconds after service starts
+        updateHandler.postDelayed(updateCheckRunnable!!, 10000L)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -179,6 +199,7 @@ class BajajBleService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         instance = null
+        updateCheckRunnable?.let { updateHandler.removeCallbacks(it) }
         try {
             batteryReceiver?.let { unregisterReceiver(it) }
         } catch (e: Exception) {
