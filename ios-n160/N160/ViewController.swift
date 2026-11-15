@@ -320,7 +320,7 @@ class ViewController: UIViewController, WKScriptMessageHandler, WKNavigationDele
 
     @available(iOS 13.0, *)
     func documentCameraViewControllerDidCancel(_ controller: VNDocumentCameraViewController) {
-        controller.dismiss(animated: true, completionHandler: nil)
+        controller.dismiss(animated: true)
     }
 
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
