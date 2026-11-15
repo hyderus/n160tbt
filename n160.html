@@ -2093,6 +2093,18 @@
       }
     }
 
+    // Native GPS hook for iOS CoreLocation & Android high-precision sensors
+    window.onGpsLocationUpdate = function(lat, lng, speedKmH, accuracy) {
+      onGpsPositionReceived({
+        coords: {
+          latitude: lat,
+          longitude: lng,
+          speed: (speedKmH / 3.6),
+          accuracy: accuracy || 5
+        }
+      });
+    };
+
     function renderTripLogsTable() {
       const trips = JSON.parse(localStorage.getItem('n160_real_trips') || '[]');
       const tbody = document.getElementById('trip-logs-body');
