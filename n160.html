@@ -103,7 +103,7 @@
   <!-- ========================================================================= -->
   <!-- HEADER: PULSAR N160 USD + LIVE BLUETOOTH + DARK/LIGHT MODE SWITCH          -->
   <!-- ========================================================================= -->
-  <header class="px-4 py-3 border-b border-[#e5e2da] dark:border-[#141822] flex items-center justify-between sticky top-0 bg-white/95 dark:bg-[#000000]/95 backdrop-blur-md z-30 transition-colors duration-200">
+  <header id="app-header" class="px-4 py-3 border-b border-[#e5e2da] dark:border-[#141822] flex items-center justify-between sticky top-0 bg-white/95 dark:bg-[#000000]/95 backdrop-blur-md z-30 transition-colors duration-200">
     <div class="flex items-center space-x-2.5">
       <img src="logo.png" alt="Logo" class="w-8 h-8 rounded-full shadow-sm ring-1 ring-red-500/30 flex-shrink-0" />
       <div>
@@ -1164,6 +1164,16 @@
       if (activeBtn) {
         activeBtn.classList.remove('text-slate-500', 'dark:text-slate-400');
         activeBtn.classList.add('text-cyan-600', 'dark:text-cyan-400');
+      }
+
+      // Top menu header is only available in Cluster Link (telematics) tab
+      const appHeader = document.getElementById('app-header');
+      if (appHeader) {
+        if (tabId === 'telematics') {
+          appHeader.classList.remove('hidden');
+        } else {
+          appHeader.classList.add('hidden');
+        }
       }
     }
 
@@ -2480,6 +2490,7 @@
 
     // --- Initialization on Load ---
     window.addEventListener('DOMContentLoaded', async () => {
+      switchTab('telematics');
       initAppVersion();
       if (window.lucide && window.lucide.createIcons) {
         lucide.createIcons();
