@@ -47,6 +47,35 @@ class MainActivity : ComponentActivity(), BajajBleManager.BleListener, GoogleMap
     private var fileUploadCallback: ValueCallback<Array<Uri>>? = null
     private var cameraTempUri: Uri? = null
 
+    private var pendingCameraDocKey: String? = null
+    private var pendingCameraSide: String? = null
+    private var directCameraTempUri: Uri? = null
+
+    private val directCameraLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val docKey = pendingCameraDocKey
+        val side = pendingCameraSide
+        pendingCameraDocKey = null
+        pendingCameraSide = null
+
+        if (result.resultCode == android.app.Activity.RESULT_OK && docKey != null) {
+            val photoFile = File(cacheDir, "direct_scan_temp.jpg")
+            if (photoFile.exists() && photoFile.length() > 0) {
+                try {
+                    val bytes = photoFile.readBytes()
+                    val b64 = android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP)
+                    val dataUrl = "data:image/jpeg;base64,$b64"
+                    webView.post {
+                        webView.evaluateJavascript("if (window.onCameraPhotoCaptured) { window.onCameraPhotoCaptured('$docKey', '${side ?: "front"}', '$dataUrl'); }", null)
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed reading direct camera photo", e)
+                }
+            }
+        }
+    }
+
     private val fileChooserLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -156,6 +185,7 @@ class MainActivity : ComponentActivity(), BajajBleManager.BleListener, GoogleMap
                         if (photoFile.exists()) {
                             photoFile.delete()
                         }
+                        photoFile.createNewFile()
                         cameraTempUri = FileProvider.getUriForFile(
                             this@MainActivity,
                             "${applicationContext.packageName}.fileprovider",
@@ -164,7 +194,13 @@ class MainActivity : ComponentActivity(), BajajBleManager.BleListener, GoogleMap
 
                         val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
                             putExtra(MediaStore.EXTRA_OUTPUT, cameraTempUri)
+                            clipData = ClipData.newRawUri("scan_photo", cameraTempUri)
                             addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        }
+
+                        val resolved = packageManager.queryIntentActivities(cameraIntent, PackageManager.MATCH_DEFAULT_ONLY)
+                        for (r in resolved) {
+                            grantUriPermission(r.activityInfo.packageName, cameraTempUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
                         }
 
                         if (isCapture) {
@@ -311,6 +347,12 @@ class MainActivity : ComponentActivity(), BajajBleManager.BleListener, GoogleMap
     private fun checkAndRequestPermissions() {
         val permissions = mutableListOf<String>()
 
+        // Camera for Document Vault scanning
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            permissions.add(Manifest.permission.CAMERA)
+        }
+
+        // Bluetooth permissions for cluster link (Android 12+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
                 permissions.add(Manifest.permission.BLUETOOTH_SCAN)
@@ -320,14 +362,26 @@ class MainActivity : ComponentActivity(), BajajBleManager.BleListener, GoogleMap
             }
         }
 
+        // Notification & Storage permissions
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 permissions.add(Manifest.permission.POST_NOTIFICATIONS)
             }
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
+                permissions.add(Manifest.permission.READ_MEDIA_IMAGES)
+            }
+        } else {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+            }
         }
 
+        // GPS Location permissions for Turn-by-Turn & Ride Tracker
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             permissions.add(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            permissions.add(Manifest.permission.ACCESS_COARSE_LOCATION)
         }
 
         if (permissions.isNotEmpty()) {
@@ -698,6 +752,93 @@ class MainActivity : ComponentActivity(), BajajBleManager.BleListener, GoogleMap
                         }
                     }
                 )
+            }
+        }
+        @JavascriptInterface
+        fun launchCameraScan(docKey: String, side: String) {
+            runOnUiThread {
+                if (ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(this@MainActivity, arrayOf(Manifest.permission.CAMERA), PERMISSION_REQUEST_CODE)
+                    return@runOnUiThread
+                }
+                try {
+                    pendingCameraDocKey = docKey
+                    pendingCameraSide = side
+                    val photoFile = File(cacheDir, "direct_scan_temp.jpg")
+                    if (photoFile.exists()) photoFile.delete()
+                    photoFile.createNewFile()
+
+                    directCameraTempUri = FileProvider.getUriForFile(
+                        this@MainActivity,
+                        "${applicationContext.packageName}.fileprovider",
+                        photoFile
+                    )
+
+                    val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
+                        putExtra(MediaStore.EXTRA_OUTPUT, directCameraTempUri)
+                        clipData = ClipData.newRawUri("direct_scan_photo", directCameraTempUri)
+                        addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+
+                    val resolved = packageManager.queryIntentActivities(cameraIntent, PackageManager.MATCH_DEFAULT_ONLY)
+                    for (r in resolved) {
+                        grantUriPermission(r.activityInfo.packageName, directCameraTempUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+
+                    directCameraLauncher.launch(cameraIntent)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error launching direct camera scan", e)
+                    Toast.makeText(this@MainActivity, "Unable to start camera: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
+        @JavascriptInterface
+        fun saveImageToGallery(base64Data: String, filename: String) {
+            runOnUiThread {
+                try {
+                    val cleanBase64 = if (base64Data.contains(",")) {
+                        base64Data.substringAfter(",")
+                    } else {
+                        base64Data
+                    }
+                    val imageBytes = android.util.Base64.decode(cleanBase64, android.util.Base64.DEFAULT)
+                    val safeName = filename.replace(Regex("[^a-zA-Z0-9_-]"), "_") + "_" + System.currentTimeMillis() + ".png"
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        val values = ContentValues().apply {
+                            put(MediaStore.Images.Media.DISPLAY_NAME, safeName)
+                            put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+                            put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/PulsarN160")
+                            put(MediaStore.Images.Media.IS_PENDING, 1)
+                        }
+                        val uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+                        if (uri != null) {
+                            contentResolver.openOutputStream(uri).use { out ->
+                                out?.write(imageBytes)
+                            }
+                            values.clear()
+                            values.put(MediaStore.Images.Media.IS_PENDING, 0)
+                            contentResolver.update(uri, values, null, null)
+                            Toast.makeText(this@MainActivity, "Saved to Gallery (Pictures/PulsarN160)!", Toast.LENGTH_LONG).show()
+                        } else {
+                            Toast.makeText(this@MainActivity, "Failed to create gallery entry", Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        val picturesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+                        val appDir = File(picturesDir, "PulsarN160").apply { if (!exists()) mkdirs() }
+                        val file = File(appDir, safeName)
+                        file.outputStream().use { it.write(imageBytes) }
+                        val scanIntent = Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE).apply {
+                            data = Uri.fromFile(file)
+                        }
+                        sendBroadcast(scanIntent)
+                        Toast.makeText(this@MainActivity, "Saved to Gallery (Pictures/PulsarN160)!", Toast.LENGTH_LONG).show()
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error saving to gallery", e)
+                    Toast.makeText(this@MainActivity, "Error saving image: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }

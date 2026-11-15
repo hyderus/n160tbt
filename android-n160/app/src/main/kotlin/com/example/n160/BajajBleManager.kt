@@ -242,7 +242,7 @@ class BajajBleManager(private val context: Context, initialListener: BleListener
 
         isScanning = true
         Log.i(TAG, "Starting BLE Scan for Pulsar N160 clusters...")
-        notifyStatus("Scanning for nearby Pulsar N160 clusters...")
+        notifyStatus("Scanning...")
 
         try {
             bleScanner?.startScan(listOf(scanFilter), settings, scanCallback)

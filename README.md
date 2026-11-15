@@ -9,9 +9,7 @@ A dedicated, modern Android app for the **Bajaj Pulsar N160 USD (Dual Channel AB
 - **Pulsar N160 Cluster Link (BLE):**
   - Connects to the motorcycle's digital instrument cluster via BLE GATT service.
   - Auto-reconnects to paired/bonded Pulsar clusters automatically on app launch and resume.
-  - Streams real-time telemetry (speed, RPM, fuel gauge, gear position, odometer).
   - Sends incoming call and SMS alert notifications directly to the cluster LCD.
-  - Synchronizes phone time and battery percentage to the bike display.
 
 - **Turn-by-Turn (TBT) Google Maps Sync:**
   - Automated integration with Google Maps Turn-by-Turn notifications.
@@ -19,7 +17,7 @@ A dedicated, modern Android app for the **Bajaj Pulsar N160 USD (Dual Channel AB
   - Translates maneuver icons (straight, turn right/left, U-turn, roundabouts, highway exit) and remaining distance directly into cluster display packets.
 
 - **Motorcycle Document Vault:**
-  - Offline-safe encrypted local storage for National ID (NID), Driving Licence, Tax Token, and Smart Card.
+  - Offline-safe encrypted local storage for National ID (NID), Driving Licence, Tax Token, and Smart Card (beta).
   - Supports image and PDF document capture with automatic corner detection and enhancement.
 
 - **Automatic GPS Ride Tracker:**

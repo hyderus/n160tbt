@@ -3,6 +3,6 @@
   "versionName": "1.2",
   "apkUrl": "https://raw.githubusercontent.com/hyderus/n160tbt/main/n160.apk",
   "githubRepo": "https://github.com/hyderus/n160tbt",
-  "releaseNotes": "Pulsar N160 USD v1.2: In-app auto updater, official release signing with v1/v2/v3 schemes, update check button beside dark mode, and background update detection notifications.",
+  "releaseNotes": "N160 UGP v1.2: Two-sided document scanning (Front & Back), direct Save to Gallery, PDF multi-page converter, updated notification and app logo, startup permissions, and updated cluster scanning UI.",
   "publishedAt": "2026-11-15T15:26:00Z"
 }

@@ -28,7 +28,7 @@ class AppUpdateManager(private val context: Context) {
 
     companion object {
         private const val TAG = "AppUpdateManager"
-        const val CHANNEL_ID = "n160_updates_channel"
+        const val CHANNEL_ID = "n160_updates_v14"
         const val NOTIFICATION_ID = 2001
         const val UPDATE_JSON_URL = "https://raw.githubusercontent.com/hyderus/n160tbt/main/version.json"
         var pendingInstallFile: File? = null

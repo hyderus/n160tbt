@@ -14,7 +14,7 @@ class BajajBleService : Service() {
 
     companion object {
         private const val TAG = "BajajBleService"
-        const val CHANNEL_ID = "pulsar_n160_ble_service"
+        const val CHANNEL_ID = "n160_ugp_service_v2"
         const val NOTIFICATION_ID = 2024
 
         const val ACTION_START = "com.example.n160.action.START"
@@ -61,7 +61,7 @@ class BajajBleService : Service() {
 
         registerBatteryMonitor()
         createNotificationChannel()
-        startInForeground("Pulsar N160", "Service active")
+        startInForeground("N160 UGP", "Service active")
 
         // Start background app update checker
         updateManager = AppUpdateManager(applicationContext)
@@ -115,7 +115,7 @@ class BajajBleService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "Pulsar N160 Bluetooth & Navigation Link",
+                "N160 UGP Bluetooth & Navigation Link",
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
                 description = "Keeps the motorcycle instrument cluster connected and streaming Turn-by-Turn signals in the background"
