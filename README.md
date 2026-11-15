@@ -33,9 +33,16 @@ A dedicated, modern Android app for the **Bajaj Pulsar N160 USD (Dual Channel AB
 
 ---
 
-## 📦 Direct Download
+## 📦 Direct Downloads & Releases
 
-- **Ready-to-Install APK:** [`n160.apk`](n160.apk) (Compiled with SDK 36, Version 1.1)
+- **Android (Direct Install):** [`n160.apk`](n160.apk) (Compiled with SDK 36, Version 1.3.0)
+- **iPhone / iOS (Sideloadable):** [`n160.ipa`](https://github.com/hyderus/n160tbt/releases) (Built via GitHub Actions cloud runner)
+
+### 📲 Installing on iPhone with Sideloadly (Free & Easy):
+1. Download **[Sideloadly](https://sideloadly.io/)** (Free for Windows/macOS).
+2. Connect your iPhone to your PC via USB cable.
+3. Download `n160.ipa` from the [Releases](https://github.com/hyderus/n160tbt/releases) page and drag it into Sideloadly.
+4. Enter your free Apple ID and click **Start**. The app installs directly onto your iPhone home screen!
 
 ---
 
@@ -44,6 +51,13 @@ A dedicated, modern Android app for the **Bajaj Pulsar N160 USD (Dual Channel AB
 ```
 ├── n160.apk                 # Compiled Android Application Package
 ├── android-n160/            # Android Studio Kotlin project
+├── ios-n160/                # Swift iOS native project (CoreBluetooth, WKWebView, VisionKit)
+│   ├── N160/
+│   │   ├── ViewController.swift   # BLE GATT 0x1000, CoreLocation & WebKit Bridge
+│   │   ├── Info.plist             # iOS permissions & background BLE modes
+│   │   └── www/                   # Embedded responsive dashboard HTML/JS
+│   └── project.yml          # XcodeGen automated project configuration
+├── .github/workflows/       # Automated cloud compilation for iOS (.ipa)
 │   ├── app/
 │   │   ├── src/main/
 │   │   │   ├── AndroidManifest.xml

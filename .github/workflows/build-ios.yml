@@ -1,0 +1,74 @@
+name: Build iOS IPA (Sideloadable)
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'ios-n160/**'
+      - '.github/workflows/build-ios.yml'
+      - 'version.json'
+      - 'index.html'
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build iOS IPA
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Sync Web Assets
+        run: |
+          mkdir -p ios-n160/N160/www
+          cp -r android-n160/app/src/main/assets/* ios-n160/N160/www/
+
+      - name: Generate Xcode Project
+        run: |
+          cd ios-n160
+          xcodegen generate
+
+      - name: Build iOS Application (.app)
+        run: |
+          xcodebuild -project ios-n160/N160.xcodeproj \
+            -scheme N160 \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            clean build
+
+      - name: Package Payload into Sideloadable IPA
+        run: |
+          mkdir -p Payload
+          cp -r build/Build/Products/Release-iphoneos/N160.app Payload/
+          zip -r n160.ipa Payload
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: n160-ios-ipa
+          path: n160.ipa
+
+      - name: Attach IPA to GitHub Releases
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Upload to latest release (e.g. v1.3.0) if release exists
+          LATEST_TAG=$(gh release list --limit 1 | awk '{print $3}')
+          if [ -n "$LATEST_TAG" ]; then
+            echo "Uploading n160.ipa to release $LATEST_TAG"
+            gh release upload "$LATEST_TAG" n160.ipa --clobber || true
+          fi

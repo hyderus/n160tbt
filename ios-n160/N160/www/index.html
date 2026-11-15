@@ -1,0 +1,2531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>N160 UGP</title>
+
+  <!-- PWA Metadata & Theme Styling -->
+  <meta name="theme-color" content="#f7f5f0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            cream: {
+              bg: '#f7f5f0',
+              card: '#ffffff',
+              subcard: '#f0ece1',
+              border: '#e5e2da',
+              subborder: '#dcd6c8',
+              text: '#0f172a',
+              muted: '#525d73'
+            },
+            amoled: {
+              bg: '#000000',
+              card: '#0b0d12',
+              subcard: '#050609',
+              border: '#1a202c',
+              subborder: '#141822',
+              text: '#ffffff',
+              muted: '#94a3b8'
+            }
+          },
+          fontFamily: {
+            mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
+            display: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- PDF.js for Offline High-Res Document Rendering -->
+  <script src="pdf.min.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Orbitron:wght@600;900&family=Space+Grotesk:wght@500;700&display=swap');
+
+    body {
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    .font-digital {
+      font-family: 'Orbitron', monospace;
+    }
+
+    .font-display {
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    .font-tech {
+      font-family: 'Chakra Petch', sans-serif;
+    }
+
+    /* Custom scrollbars */
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(150, 150, 150, 0.3);
+      border-radius: 4px;
+    }
+  </style>
+
+  <script>
+    // Initial Theme: Default is White/Cream unless user previously chose dark mode
+    const savedTheme = localStorage.getItem('n160_theme');
+    if (savedTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  </script>
+</head>
+<body class="bg-[#f7f5f0] text-slate-900 dark:bg-[#000000] dark:text-slate-100 min-h-screen flex flex-col font-display antialiased transition-colors duration-200">
+
+  <!-- ========================================================================= -->
+  <!-- HEADER: PULSAR N160 USD + LIVE BLUETOOTH + DARK/LIGHT MODE SWITCH          -->
+  <!-- ========================================================================= -->
+  <header id="app-header" class="px-4 py-3 border-b border-[#e5e2da] dark:border-[#141822] flex items-center justify-between sticky top-0 bg-white/95 dark:bg-[#000000]/95 backdrop-blur-md z-30 transition-colors duration-200">
+    <div class="flex items-center space-x-2.5">
+      <img src="logo.png" alt="Logo" class="w-8 h-8 rounded-full shadow-sm ring-1 ring-red-500/30 flex-shrink-0" />
+      <div>
+        <div class="text-sm font-black tracking-widest text-slate-900 dark:text-white uppercase flex items-center space-x-2">
+          <span>N160 UGP</span>
+        </div>
+        <div class="text-[10px] text-slate-500 dark:text-slate-400 font-mono flex items-center space-x-1.5 mt-0.5">
+          <span id="bt-status-dot" class="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-600"></span>
+          <span id="bt-status-text">Bluetooth: Disconnected</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Theme Switch & Update Option -->
+    <div class="flex items-center space-x-2">
+      <!-- Check for Version Update Button -->
+      <button onclick="triggerCheckUpdate(true)" id="app-update-btn" title="Check for Updates" class="relative px-2.5 py-1.5 rounded-xl bg-[#ede9df] hover:bg-[#e4dfd3] dark:bg-[#0f131a] dark:hover:bg-[#161c28] text-slate-800 dark:text-slate-200 border border-[#dcd6c8] dark:border-[#22293a] text-xs font-bold font-mono transition flex items-center space-x-1.5 shadow-sm active:scale-95">
+        <img src="data:image/png;base64,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" alt="Update" style="width: 18px; height: 18px; min-width: 18px; min-height: 18px; object-fit: contain; display: inline-block; vertical-align: middle;" />
+        <span id="app-version-badge" class="text-[11px] font-mono font-bold text-slate-700 dark:text-slate-300">v1.3.0</span>
+        <!-- Glowing green/cyan badge dot when update is detected -->
+        <span id="update-badge-dot" class="hidden absolute -top-1 -right-1 flex h-3 w-3">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+        </span>
+      </button>
+
+      <!-- Theme Switch Option -->
+      <button onclick="toggleTheme()" id="theme-toggle-btn" class="px-3 py-1.5 rounded-xl bg-[#ede9df] hover:bg-[#e4dfd3] dark:bg-[#0f131a] dark:hover:bg-[#161c28] text-slate-800 dark:text-amber-400 border border-[#dcd6c8] dark:border-[#22293a] text-xs font-bold font-mono transition flex items-center space-x-1.5 shadow-sm">
+        <i id="theme-toggle-icon" data-lucide="moon" class="w-3.5 h-3.5 text-slate-700 dark:text-amber-400"></i>
+        <span id="theme-toggle-text">Dark</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- MAIN APP CONTAINER                                                        -->
+  <!-- ========================================================================= -->
+  <main class="flex-1 max-w-5xl w-full mx-auto p-3 sm:p-5 space-y-4 pb-20">
+
+    <!-- Optional In-App Update Notification Banner (Visible when new update is detected) -->
+    <div id="update-alert-banner" class="hidden p-3.5 rounded-2xl bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-cyan-500/15 border border-emerald-500/30 flex items-center justify-between shadow-sm">
+      <div class="flex items-center space-x-3">
+        <div class="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center flex-shrink-0">
+          <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAAZsElEQVR4nO09CZBdVZXn3Pu2v/SSYIotAyJr0kACKIgMkriUyqY4dgctdYaCwZERBSLUQNL9/stvEpVCLFMzzjA6Y6k1g90yKgww4pKgAgkkQNLpoHFAhpKwma37L2+9d+rc/17nJ3TIf79/d7qjp+h8+v/f7717zr1nXxAOIUjbZmsB6Ec4jiPqP3vOto/zAE4DKbskwGkS4K0SYC4AzAKANpDSBAAOiBKkDCSAj4i7GcBOAbCdIz4nALZxgC0AsG2e42xv9N5TCXgo7ikHBhgMD0usW/iztk0IficALALEc4SUJ2uMdRicAyCCEAIiKdWrkBIkIVHSv/QxqoUwxoAjqleGqD73whCkEDslwDbG2BOI+EvmeetOXbnypeTeA93dnF57BgfpeeSUImOqbiTpXgMDDHt6ouS9zbb9Nh3xMgnwYQlwft4wLEKmH0XghyGEUSQRURFJSon0sPQGjv/ckhCO9FojSoJIzhkDU9OAiElErPh+CQHWI8APpZQPzHOcF8YuMjDAoadH0HUOFwKoHZ8gfo1ta0czdglIebUAeG/eNLNBFIEbBBAJEcUIZHBgRKcGSf8RBQEEbQTOGM8YBmiMQcnzygzxQUT89im9vQ8lhCNC1G+WGUkAOto9g4NqEc8sXZoz29o+CYjXmZyfSegt+z6xhzDerqxVCG+EIEQMIgpjTMuZJhEfgjDcCADfYDt2fO+U1as9epjv161hMmBSFkybbbCnh9GD2xddpF25ePHViPjFjK6fROyl6vs1Xos4ZUg/yOmg58GMYTBiU9UgGBZCfGW+43xHfYdkxMCAqGNrLYOWL77+6A47zoc0xKKlaee4YQheEND7xFwYTEOQNUJIS9c5yYxqEDwWhWFfV7H488liSzgZQnbdLbfM7czlvqwx9gn6rOL70xrxByJEzjQ5aVyhEN/yhLhtoeO81moh3RKEkE5ND0TI39LX9/HOXG5DxjA+UfF9QT+IyGcK8gnoWemZS54niF3mDONqi/ONw7b9keQE0JphOpyA5Fg+duONmVkdHV/LGMa11SAggRYiogaHAUgpQ0PTNJ1zsiu+/qvt27/4mbvvDgYGBnjPBFnShKhIKiUhf8OyZSfO7uj4Vd40rx2pViM/DOXhgnwCWosfhnSaozbL+vxFc+f+fOOyZccT8gkHcChOAN14seOEm5Yte7dlGAO6ph1ZqlZDZOywQfx4QGpzWyZDBNk+GoYffXuxuD7BBUwVAZIbbl6+vMcyjO9KKQ03DCOGqEz6KVAbYRyXAZLLYirUWmJJlq7TRiuXfL/n7P7+ByVxgyaIkPphkxttWr78mrxl/asbBDISQk6GkJU1Z4/SOEjLIsFIPh5yLdCrspVjnxBpK1HiJ5IysaiVi6hmVLf82SKdc3JzhBXXvXLhypX3NkOEVA+W3ODpZcuuas9k/o00hEhKpTKkXsEBbyJJBSSXAdM1jVmaphBOyCXhHkVRBRBHQcoyAPjxXxmAmAOAPGcsl9F19TehEGR7QBBFRES6Lrk4WCvVVc4YknCu+P7HFvb3/1daImBatvPM8uUfzZvmvV4YRqEQrFXIl1IqW8HUdUYIJGecGwSvMsbIPfBEFEVbmK4/77vua1YQjLySzVYXO05ER2StbXO9UsnM7ujISyGOgjA8CREXCIBzQcqFGcOYo5GF6/t03Sh+ZN4qItC1Nc5FxXUvW3j77f+TRiZgGlVzQ2/vhe26/rNQCC2IopbsfFlDPMtbFvmPwQ3D5wDgAUD8b0+IJ89ynN0Tuf7/rVo1q+q65wmAyxHxYkvXjyeWVfK8GntrgdwiIuick5OvMhoEF51TLG6s94O9GWBDRpbjiKdt+60Z8qcDzHGDQDByuk/woYEiK5bFaLdLgIcB8RvZXO4nxy1dWt0/cLKoq0tSDKEAAAXHkfUPPyaNiesXCghdXbh2eBgXEYLrYg5bbDvPOf8gSvkZxtj7lDfUddXnE5VhQghBviQh5faq55171sqVLyW4a5oAiVNtzvz5+hyAx7KGcdao605Y2xFSRlnD4HTzSIgfBULcebrj/Dr5nI7w61u3yu4WOMCUF3pwUCG33o+zxbbfoyHeomvaB0i+uEEwYcORtKP2TEYrue6jryMuUpvmIG4LbEjXX778m7Pz+at3lUoT0vPVrkfEzkwGK76/KRLiti7HeXDMtO/qwskMhiT+qsLwsEzCkFsd5wom5e1Z05y3u1JRgbaJnAayE2bn89ofS6WvLezvv/Fg8gAPxvc3LVtGvp3/GKlWyW8/EeRH5GUk1TKSctULO3asuHj1ao8QP7h1K06mz308IB7dPX++CotSrMJqb7cZ4s2kxsaCuulTjgBh1jC0PZ536VnF4gNv5rIYlwB27Gi6HOCoLOJmRJxFfLrZnUFHs82yNDcMf+/5/jULb7/9F824d2VMLELceJ+rz1KyrfpnGOrt/YCuad8yNO3Ykus2zZLopJuahqEQr+Qtq+s4191Dsmu84D8eZPff25nLfXR3tdo03yfkd2azWtnzHtnteUvOX7XqVTqWixxHGUswDYBYE6myit3ecstcI5sdyJnm+bsrlYkQQa17V6XyrQXF4jUH2mxvIEDyxaHe3svylnUf7YSmWY+UYUc2q4163j3Dw8N/3TM46DfjN5GxNjHU23tBRteXu2GoiVoIM1ksxXclZ6zsBsEtC/r7f0unOG26SfJs9117bfakY475z7xpXj4RIiBAZOo6d33/L88oFh8dTzXV3iCkhofltuuvNz3EOwNBHHHvQtPugFnZrDZSrX67a8WKq+jaMSJT+0vW1ry25O/43Ox8/oM7SiXglK5SB2EUwZy2Nnhx585NANBXAGBOzfptGAj5hKTL7767Ytv2FUtc955Z2Wz3riaJQBtDpccg3ilt+13jpbzsw9PpGNJOczs7/7YjkzmZXA3N8P3k+O1x3e8T8mlRBdvGg+nEBwXEgNzdbhh6Jc+Lxn5cV71Hn7GUSN8fVBzbtlmhUJDfB7hyxHXvp7XQmlJfDJGXPS/qsKzztkRRD61/f/f1GHJphy4qFKKX77gjh4j/UPF9yZpw1pGOTwJ3xHUfeR3gk7Trh+fPH1P7JgJIuUEki6QkG2LvT/Jei7yx6lkLBSQivAbQM+p56/KWRURoRlNDP4oo/aLw4PXXm5SJFzsJ9yWA2v2IckepdFVHJnMsBSDSOq5I+pOq6Ybhi77vdye8/lCm/jUL6rQWCrjYcVy3XP4rLwheNTSNJRZ8w9dBZMRJOjKZU4+fNauHcEG4Tj5PEIyklWyxbSMS4gZyMaf2lAKQEKR8m6jq+x8/e9Wq15VAn4HITyBhGefcccf2ahR9SmOM/F+pNTdymQVhKEMpbyJ2TJxmHwKsod2vjDhxSbtlnUi+nrS8n3ZGm2XxShCsOPv22x9LwpUww2Gx44TkYj67WPxp2fO+2p7JUKZE2nVxYul501x46mmnLSJOo7IrEgKQ00p9DfEzTSanRjnD4Lur1U27GFtJF6cTBYcLOE5EO3dWubx8pFr9XUbX07MiAEGqMgJcQ78Pxu+zRMemRFmOuKjseakt3lrapfqfL9COoYtPFyOrFUBr6e7uhuPuuqsaSrlU45SDnW59kjQinzLo8ZLNt956JLkmCG+E6BqypexusywzCYw0fGEpo/ZMhpU97/4zi8VHWpGqMR2B2CmdgoXF4v2j1eojOcsiv1bD66RYdRhFhKs21PVL1ZuFAmeFvXrzFZSlPBZobfTCiOiFIQUkCkq9GkwO1+EH3d3d6pVxXqA6hWZi6kKQFgpLkl+Vua7YD8A5FLJLE6qjHZA3TeaF4U/mO85TYNtT7tWc6lNALPsMx1lb8TzKgyLu0fh6SSUNAor8veupW2+dQ6xfsR8WRe+mXJcmrD2Mze2vK4dWi1IdpzMka2Scf52CgkmVTqNsKIqiKJ/J5LimkWuidjGBuDjtg8RGFyt53vMAoNzLFCSHwxwWxWsMS6WHRqrV7YamkRWeRiOSFApFgIvGtCAGsDCOy7I0apWl6/QH957uOH5s3R02ms+BgLQfsnEW3nlnGQHuzxoGvd04ARAxCEN6PZd+ZVvD8C8EwIl+egHMqKxIAvyYfnmd4p9/IrCotlaUjN1HXtg0G5e+qwoHpZxHcoABY/NNTcupgrhGpbqUgvwibhD8IV/L24Hunp4Z63JIDbW1yhLAupLn7dY4J8NMNqyOCkHxi1m6pp3CIoAFuqbR5hdp/D6mrtPfbDzBcVzSjw8nw+tgQGsll/W7HGcnID5NrDgVGwKg+DhKxNMps21eMw9AgQYAeJL+mTN//iGt8zoUsChmOyjlE7FQbTwOvbe2+RQmAE6gvJgxd0IjgEhWHVkVm+p44p8kSCm3qLhhClD1zrVi8xOJisdE6a068npSwOb36rfh4cOWAPIApUiUOEavoZTPK6GazoBFwjlKeSxZEh2Kgg0qQLHfn0zq0YDz19WbBfJCTDPoas2pPFA8g6J89MoAXvbDMGCMUaCg0XtifGpmU3yyM4wilbHWiCQn/V/xf8RyB8BI7c1pIAJQFdURBq7b3Nf3saGhIRzq62ueCFLKrGlGFc8rnlEs3rt/RgOFKx3HIS/CbuB8hCMeofxDjeCCel/UNn2HhgAvdmSzbxt1XdXk4mAQCcFnZbPw6sjIsyesWOE2koA6FYCxeqdzTqnocyZ6PWIRbZZFef9XAcC9yhFX72iMEW2VyxVX18uMsSMwUtny2MizKhkgpUkn4MqK561miCdRyvmbVZPQCaE8+D2Vym90Xb+uPrg8HQABqBhD0k8LLheWfV8DKccytceDk195JdzS2ekrwZpCkKokVABDO6NYJFXynZRHv6cBX8LRliVn3Xjj3pz9OFV8ugDWNtDEN4aUlA/F0li5zYCWsJDjb711V8PPBoCU5zMTsx1aDb876iiNdnLaLIZ4l/hUzzTWj6fhP6bMgGm286ccYs3RzeWyiJgjAdyoLqm6tdTAG8vSmoxOIK0Gmcb53sKbjvd2gSpxKJOE804O0E6NoBrWBuOUxUjKPTOrqJoxOuqkMqeKWzcFiFHM/5W/eX/o2rpV3V8AHJ3RNN0LgriZV0NArhz67s6ZRQApVUpIEEWmqhOerNvUUix5VtdhFICKBoFqzuq/k/i/NMS3UWsbv9aKpyF8ErchY1YivjQjCLA4TnFkiMU/VipraVeGYdjYapsAuhldezdA0Mb5r98s2ofk0UxpiNY5456bEQRIgCJvAKCaJx0C2EcW1CWzvYMMwBQSoN4Zt21aGVINt7ycShinaDBGtnzMtmfnhXhO45zcOWlkAJ1mSgW9cEadAIibQh3qh6BKSyJMHuCdedPspMZOjWYTkgqqM0Yp67uiMNx22KeRTAbEAlmiEJdTm4K4D0VDQN8loY2Iz1IG+Uw7AYccFPuhnhlLl+YkwGWVWjJb4xtZSkkhYPC8J9L94Z9BQVJcoeXzH2rPZI6hmuKUhSwqmsgYdWBoUG+tB9VCuCZrpr3lPBmQaD8iij5P7oc0mTzE/zXOecl1S0EYPk7vpclnqVU51lwWKjmJ6gBSxZJnOMi44mfIthdlTfNCEr6p2t5IKTK6Tg1rH1cVRLbdeN8HpYo5jtx1112dnTfcsIfi8m/oaFLrThK7ug8/GIwDMiKKCqyWEZd6nRS6pI7Iya8Hb1dDuJcSHr/pJqs9n/8X0zA+5IXhq5x4mBAPc8N4/JRly2qx4RhUJTzFZLu7J6Xd76GApID9md7ey9ot676y6xLvbzwQX8sJpWD8qAyCk89ctepV4h4HPQGqhB8x3NTX93dHtrd/6tWRETA07S2WrneFQvx91fN2PlsorAOAh1HKNacWCkOH2+mQAEi7/8Ubb8yMIN5JRlcay5cApVRlXHuq1QcI+VTIgohR4yxIypOrQUBlNcINAu4FgerrpnE+29L1izljF4+6rtzqOMNbbXsNZ+wnOV1fh7fdtqM+a2xGng7b5j21tj39szKZk3dVKql7ZxCuQiFowd+k32ulHum0oGeklCoDOrb6FP+i3TBaa4pHwkWzNO10U9NOD6Lo+j2u+8fhQmEdA3hYSrlmvuNsqe8TMdDdzcmruH9nq+kEqtrTccKnenvfnzOMm1Q1fvqCcGpQRan8z/z2N79ZG2uSUUMESBKQNMY2kNFBxWb1Ry/WSZMHklXfl67v17oeck6s6lLG2KWlalVsJfYEsAYRHw6FWH865Vbut9jpdDqS3hYbb775mAzn3w2FkGKvGt74daQEXdNQC4KvUmrLmkKB8K42YkNCmHY39VuTUv6vzvmRcWtiTNP3U50OXVejRNTEjDB8DQEeBykf5pyvObWv79k3NFTq7t6nzdiUZ8QVCpKUj8729jWWYZxHPSnStkMglp0xDKwGwbY/7Nq1YP3s2QH1vEscfJiqXUxf389ypvneZh4kpkcyRoROB1MFHrXGeXS9zYD4CwT4qSXE+hPibonJBoAphKRZB4Udu6X8cXsmc2mzbWuojq4jk+EjlcrHz+jvv2f/dj1amnYxlA2tMfbeJhGS5ByxuvwdUSc7zjI17Sw/ipZWpXzlt46zrup530PqSFs79lNCBJUBVwu+sCUA9+QngHwgzcc0+R7XXX8G5wPjtetpyBJOsp8Z4nqVSd2CeGycFcDjZlAkOyjhK6yQaxfgKEPTPjKno+MHQ8uXf7q+tH8ygXan4tG2bS1B/GGbZXVPqGFTnIKIUi4lDkIt1fb/TmMXjrOfgzDcVJKSElH1mL+3yg2B45wOn/oyAGOfBIDvJFbolLQsQ7wnZ5oXNNuoSV0z7hYWtyx79EAtyxo6AYmKuGDbthclwPM06GYyU0SwliiMcYfyocksAlGIAZCEfGraZ+Zy6yxdv2CC/eLI589HXfflzmz2ZmI91CpzvO823pIgpuDm3t57OjKZJRNtY3nQdme5nDbqums9Ka/4EcAICcVWyoHp0rayYQQmaRkScT0iJqX2LQcJEMXIH3hhx45Pq96iLRLC9Y1bY0G7t3GrYdQ3buUTadw6K27celZ//wNK6+npOWABfMMESAwykHIDladOSjBHShGrbP/UtWLF52zbTlzgomWti+OdONa6mHPVuriO5TTN6lR/1GxW212pPLqL85vjiUtvasek6YqiduEW254thHhe47wjbSZAgwaLc+aKFc6Bmnerapy9SVm1et3p1LxbiJervv+OljTvPhARhvr6qJH3+fF8sFaph5JoyRA3IcBaIeUDVdd98u1f/jJlzTcNtGE0TTtXhOGkt69njFXLlcqis7/0pScbbV+fSoiuLRToYanMe4PO+fnKydG68iSMfSYLTU1b6IXhDcI0Xxnu69sgGdvAEDdHQfA8t6zXfNMcWVAqVWl3JSrkAQc4ACzUEedolqUGOFD3d5WVVkN8S5BPmRGc86hUrX6MkJ+mOW2zatYT8UzflleHub4vEmeeoWlHmZp2KWfsUuLTFZop7Ptl7vsjWwBKQ729wRYA9hYhDMhkcpHv10aYmOY+I0zKNeNOjTBpVWvL+hEmxMoqnrfk7JUrH0o7wkRrJiAdATxdjifkQasB97q6yelH7TP3G+KTIyQfaIgP/ahdvu8Qn72dwSZviE/q+TFqualuGjvGqLWx29m5zdT14/wgSN1f9DAaY1Uq+f6SiYyxSoU4Qj4JF5q1SwOxlUU89SPAMQa230/LBkA3MshNSPlSKQjeQ8hPgjbNXC/1zh1zCSA+QXz2T6VJh6w1ZYrIyPLC8Fc7fP+Cs4vFVAK3JUI48YxSkwoKrDTbXX2mDvMcdd19hnm+mZU7KQRInEoaY0Nlz6tyxjKqAeZ4swjiVl4zaZRtPQgpSQEA6p5eCYI/uEFwfZfj/Ihk4bVkZLUgWtfU5k3iAUN9fU9ndX1BPDOY7a8lZAxDaUlksMW8e0YQQk73gc6q0zpZrlI+pY+Tnh3PD+BV33/KDYKNR+RynCbk1eb3pGv5O5VAzxYPG2Lkkwqi6DHf9983z7avSZBPu76Vcm9ic7MAKMX6b+p+J9mgXMll173fZ+zKUSpGdt3PAsAXOrLZE8kwigdDSFJfp0JzaUCtpU2B5Mshza4aBMNlz/vKfMf5jvpOdzeH2nCglicINEWAMc8oYxu8MMQE8cRj1MwY1/3n+YXCdXvLmWH1Gtv+96N9/9MA8Nm2TOZ0wnqZ0lyEUOOZYmE+JcRQhdJ0ainRiTGN2hCTAReE4cZqFH2D7djxvdNWr/ZUEie1YyOfziR1hGleBkhJviHzCCE2zWlrO4WQSS2tS67be0ax2J+kdRBu61W1Dddeq+fnzr1ECEFdSN6fN82MSlOhSalCJBYsTT1tmV4f7/IkI4NmPnIaGEo+nJLnlRnig4j47VN6ex9K4g5pR2w1C00vMJlSNLRixTxDiCIydkTV9/9xQX//D0g9oy6K9bwyCYbUL2pbsXiiEOLDQsrLpJTnETEI7dRCk/qYUiJUIl+UJzZ2mR6AMCpKGhOwvvKf3AUqH4nYC2V1Vny/hADrEeCHUsoH5jnOC2MXabGQPRhMdIclXVrG4GA+8IQQ5NvHuu89Z9vH+YgXCoB3g5TnSClP5Jx3mjQtibILyM9DPp+9Q5vHbhzX3KocIzqF9KqmF0kJqp2YEDupJJTRMFLEXzLO1526fPlLyb3JuqfXnsFBpf3AFMLEx9EmMyDJPujqwrST8dYC0I/Yv/PKNtueGwCcBlKS5XcaIJ4AUh4rAd5Cg5ullBalh8e8nGauUHP+3QxgpwDYzhGfEwDbOMAWutw8x9lef306wdT5cLx7TyX8P5P5c7JV3WrUAAAAAElFTkSuQmCC" alt="Update" style="width: 20px; height: 20px; object-fit: contain; display: inline-block;" />
+        </div>
+        <div>
+          <div class="text-xs font-bold text-slate-900 dark:text-white flex items-center space-x-1.5">
+            <span>New Pulsar N160 Update Available!</span>
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+          </div>
+          <div id="update-banner-sub" class="text-[10px] text-slate-500 dark:text-slate-400 font-mono">Version 1.3 is ready to download and install</div>
+        </div>
+      </div>
+      <button onclick="openUpdateModal()" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-black font-extrabold text-xs font-mono shadow transition">
+        Update Now
+      </button>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 1: CLUSTER LINK (Position 1 - Default Landing View)                  -->
+    <!-- ========================================================================= -->
+    <section id="view-telematics" class="tab-view block space-y-4">
+      
+      <div class="bg-white dark:bg-[#0b0e14] border border-[#e5e2da] dark:border-[#191e2b] p-4 sm:p-5 rounded-2xl space-y-4 shadow-sm dark:shadow-xl transition-colors duration-200">
+        <div class="flex justify-between items-center">
+          <div>
+            <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+              <i data-lucide="bluetooth" class="w-4 h-4 text-cyan-600 dark:text-cyan-400"></i>
+              <span>Pulsar N160 Instrument Cluster Connection</span>
+            </h3>
+            
+          </div>
+          <button onclick="triggerBleScan()" class="px-3 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white dark:text-black font-bold text-xs flex items-center space-x-1.5 transition shadow-md">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+            <span>Scan for Cluster</span>
+          </button>
+        </div>
+
+        <!-- Connection State Card -->
+        <div class="p-3.5 rounded-xl bg-[#f0ece1] dark:bg-[#07090e] border border-[#e0dad0] dark:border-[#161a24] flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <span id="ble-banner-icon" class="w-3 h-3 rounded-full bg-slate-400 dark:bg-slate-600"></span>
+            <div>
+              <div id="ble-banner-name" class="font-bold text-xs text-slate-900 dark:text-white">No Bike Connected</div>
+              <div id="ble-banner-sub" class="text-[10px] text-slate-500 dark:text-slate-400 font-mono">Turn on Pulsar N160 ignition and tap Scan</div>
+            </div>
+          </div>
+          <button id="ble-disconnect-btn" onclick="triggerBleDisconnect()" class="hidden px-2.5 py-1 rounded-lg bg-rose-100 hover:bg-rose-200 dark:bg-rose-950/80 dark:hover:bg-rose-900 border border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs font-semibold">
+            Disconnect
+          </button>
+        </div>
+
+        <!-- Scanned Device List -->
+        <div class="space-y-2">
+          <div class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-mono">Nearby Bluetooth Devices</div>
+          <div id="ble-device-list" class="space-y-2">
+            <div class="p-6 text-center text-xs text-slate-400 font-mono">
+              Tap "Scan for Cluster" to detect your motorcycle.
+            </div>
+          </div>
+        </div>
+
+        <!-- GATT Characteristic Link Statuses -->
+        <div class="grid grid-cols-3 gap-2 text-center text-[10px] font-mono pt-1">
+          <div class="p-2 rounded-lg bg-[#f0ece1] dark:bg-[#07090e] border border-[#e0dad0] dark:border-[#161a24]">
+            <div class="text-slate-500 dark:text-slate-400">TBT CHAR</div>
+            <div id="stat-tbt-char" class="text-slate-700 dark:text-slate-300 font-bold">Standby</div>
+          </div>
+          <div class="p-2 rounded-lg bg-[#f0ece1] dark:bg-[#07090e] border border-[#e0dad0] dark:border-[#161a24]">
+            <div class="text-slate-500 dark:text-slate-400">PHONE STATUS</div>
+            <div id="stat-phone-char" class="text-slate-700 dark:text-slate-300 font-bold">Standby</div>
+          </div>
+          <div class="p-2 rounded-lg bg-[#f0ece1] dark:bg-[#07090e] border border-[#e0dad0] dark:border-[#161a24]">
+            <div class="text-slate-500 dark:text-slate-400">GENERAL/SYNC</div>
+            <div id="stat-gen-char" class="text-slate-700 dark:text-slate-300 font-bold">Standby</div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 2: MAPS (Position 2 - ONLY Cluster TBT Live Sync Menu)                -->
+    <!-- ========================================================================= -->
+    <section id="view-navigation" class="tab-view hidden space-y-4">
+      
+      <!-- Cluster TBT Live Sync Card (Sole Focused HUD) -->
+      <div id="gmaps-sync-card" class="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#0b0e14] border border-[#e5e2da] dark:border-[#191e2b] space-y-4 shadow-sm dark:shadow-xl transition-colors duration-200">
+        
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <i data-lucide="radio" class="w-4 h-4 text-cyan-600 dark:text-cyan-400 animate-pulse"></i>
+            <span class="text-sm font-bold text-slate-900 dark:text-white tracking-wide">Cluster TBT Live Sync</span>
+          </div>
+          <span id="gmaps-sync-indicator" class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+        </div>
+
+        
+
+        <!-- Permission Prompt Banner (if notification access needed) -->
+        <div id="gmaps-perm-banner" class="hidden space-y-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50">
+          <p class="text-[11px] text-amber-800 dark:text-amber-300">
+            Enable Notification Access so the app can intercept Google Maps turns and stream them to your bike.
+          </p>
+          <button onclick="requestGmapsSyncAccess()" class="w-full py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center space-x-1.5 transition">
+            <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+            <span>Enable Google Maps Sync</span>
+          </button>
+        </div>
+
+        <!-- Live Google Maps Cue Display Box -->
+        <div id="gmaps-live-cue" class="p-4 rounded-xl bg-[#f0ece1] dark:bg-[#07090e] border border-[#e0dad0] dark:border-[#161a24] space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <div id="gmaps-maneuver-icon-wrap" class="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-700/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400 font-bold text-base shadow-sm">
+                <i id="gmaps-maneuver-icon" data-lucide="navigation-2" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <div id="gmaps-maneuver-title" class="text-sm font-bold text-slate-900 dark:text-white">Waiting for Google Maps...</div>
+                <div id="gmaps-street-name" class="text-xs text-slate-500 dark:text-slate-400 font-mono">Start a route in Google Maps</div>
+              </div>
+            </div>
+            <div class="text-right">
+              <div id="gmaps-distance-text" class="text-base font-extrabold text-cyan-600 dark:text-cyan-400 font-mono">-- m</div>
+              <div id="gmaps-roundabout-exit-badge" class="hidden text-[10px] bg-cyan-100 dark:bg-cyan-950 text-cyan-700 dark:text-cyan-400 px-2 py-0.5 rounded font-mono font-bold">Exit 2</div>
+            </div>
+          </div>
+          
+          <div class="text-[11px] text-emerald-600 dark:text-emerald-400 font-mono flex items-center space-x-1.5 pt-1 border-t border-[#e0dad0] dark:border-[#161a24]">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>Cluster Link Standby &bull; LCD hardware icons active</span>
+          </div>
+        </div>
+
+        <!-- Quick 1-Tap Google Maps Launch Button -->
+        <button onclick="launchNativeGoogleMapsApp()" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition flex items-center justify-center space-x-2 shadow-md">
+          <i data-lucide="external-link" class="w-4 h-4"></i>
+          <span>Open Google Maps App</span>
+        </button>
+
+      </div>
+
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 3: DOCUMENT VAULT (Position 3)                                       -->
+    <!-- ========================================================================= -->
+    <section id="view-documents" class="tab-view hidden space-y-4">
+      
+      <!-- Vault Header Card (Clean - No 'Offline Safe' badge) -->
+      <div class="p-4 rounded-2xl bg-white dark:bg-[#0b0e14] border border-[#e5e2da] dark:border-[#191e2b] space-y-1 shadow-sm dark:shadow-xl transition-colors duration-200">
+        <div class="flex items-center space-x-2">
+          <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600 dark:text-emerald-400"></i>
+          <span class="text-sm font-bold text-slate-900 dark:text-white tracking-wide">Motorcycle Document Vault</span>
+        </div>
+        <p class="text-[11px] text-slate-500 dark:text-slate-400">
+          Securely store NID, Driving Licence, Tax Token, and Smart Card with automatic corner detection & high-res enhancement.
+        </p>
+      </div>
+
+      <!-- Document Slots Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        
+        <!-- Slot 1: National ID (NID Card) - 2 Sided -->
+        <div class="p-3.5 rounded-2xl bg-white dark:bg-[#0b0e14] border border-[#e5e2da] dark:border-[#191e2b] space-y-2.5 shadow-sm dark:shadow-lg transition-colors duration-200">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <i data-lucide="user-check" class="w-4 h-4 text-cyan-600 dark:text-cyan-400"></i>
+              <span class="text-xs font-bold text-slate-900 dark:text-white">National ID (NID Card)</span>
+            </div>
+            <span id="badge-nid" class="text-[9px] px-1.5 py-0.5 rounded font-mono font-bold bg-[#f0ece1] dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-[#e0dad0] dark:border-slate-800">EMPTY</span>
+          </div>
+          <div class="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400 font-mono">
+            <span>Smart NID (2 Sides)</span>
+            <div class="flex items-center space-x-1.5">
+              <span id="subbadge-nid-front" class="px-1 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-500">F: Empty</span>
+              <span id="subbadge-nid-back" class="px-1 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-500">B: Empty</span>
+            </div>
+          </div>
+
+          <div id="thumb-wrap-nid" class="w-full h-28 rounded-lg bg-[#f0ece1] dark:bg-[#0e121a] border border-[#e0dad0] dark:border-[#1a202c] flex items-center justify-center overflow-hidden cursor-pointer relative group" onclick="viewDocFullscreen('nid')">
+            <div id="placeholder-nid" class="text-center p-3 text-slate-400 dark:text-slate-500 space-y-1">
+              <i data-lucide="image" class="w-6 h-6 mx-auto opacity-50"></i>
+              <div class="text-[10px] font-mono">No Document Uploaded</div>
+            </div>
+            <img id="img-nid" src="" alt="NID Preview" class="hidden w-full h-full object-cover">
+            <div class="hidden group-hover:flex absolute inset-0 bg-black/40 items-center justify-center text-white text-[11px] font-bold font-mono space-x-1">
+              <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
+              <span>View Fullscreen</span>
+            </div>
+          </div>
+
+          <!-- Primary: Scan Both Sides (Front first, then Back) -->
+          <button onclick="startTwoSideScan('nid', 'National ID')" class="w-full py-2 px-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-extrabold text-[11px] flex items-center justify-center space-x-1.5 shadow transition active:scale-95">
+            <i data-lucide="camera" class="w-3.5 h-3.5"></i>
+            <span>Scan (Front & Back)</span>
+          </button>
+
+          <!-- Secondary Row: Upload File / PDF + Quick Single Side Rescans -->
+          <div class="grid grid-cols-3 gap-1.5 pt-0.5">
+            <label class="py-1.5 px-1 rounded-xl bg-[#ede9df] hover:bg-[#e4dfd3] dark:bg-[#11151e] dark:hover:bg-[#181f2c] border border-[#dcd6c8] dark:border-[#212735] text-cyan-700 dark:text-cyan-300 font-bold text-[10px] flex items-center justify-center space-x-1 cursor-pointer transition text-center">
+              <i data-lucide="upload" class="w-3 h-3 text-cyan-600 dark:text-cyan-400"></i>
+              <span>Upload/PDF</span>
+              <input type="file" id="input-upload-nid" accept="image/*,application/pdf" class="hidden" onchange="handleDocFileChosen('nid', 'National ID', 'upload', this)">
+            </label>
+            <button onclick="triggerSingleSideScan('nid', 'National ID', 'front')" class="py-1.5 px-1 rounded-xl bg-[#ede9df] hover:bg-[#e4dfd3] dark:bg-[#11151e] dark:hover:bg-[#181f2c] border border-[#dcd6c8] dark:border-[#212735] text-slate-700 dark:text-slate-300 font-bold text-[10px] flex items-center justify-center space-x-1 transition">
+              <i data-lucide="camera" class="w-3 h-3 text-amber-500"></i>
+              <span>Front</span>
+            </button>
+            <button onclick="triggerSingleSideScan('nid', 'National ID', 'back')" class="py-1.5 px-1 rounded-xl bg-[#ede9df] hover:bg-[#e4dfd3] dark:bg-[#11151e] dark:hover:bg-[#181f2c] border border-[#dcd6c8] dark:border-[#212735] text-slate-700 dark:text-slate-300 font-bold text-[10px] flex items-center justify-center space-x-1 transition">
+              <i data-lucide="camera" class="w-3 h-3 text-amber-500"></i>
+              <span>Back</span>
+            </button>
+          </div>
+          <!-- Hidden Inputs for Camera Fallback -->
+          <input type="file" id="input-camera-nid-front" accept="image/*" capture="environment" class="hidden" onchange="handleDocFileChosen('nid', 'National ID', 'front', this)">
+          <input type="file" id="input-camera-nid-back" accept="image/*" capture="environment" class="hidden" onchange="handleDocFileChosen('nid', 'National ID', 'back', this)">
+
+          <button id="btn-del-nid" onclick="deleteDoc('nid')" class="hidden w-full py-1 text-[10px] text-rose-600 dark:text-rose-400 font-mono text-center">
+            Remove NID
+          </button>
+        </div>
+
+        <!-- Slot 2: Driving Licence - 2 Sided -->
+        <div class="p-3.5 rounded-2xl bg-white dark:bg-[#0b0e14] border border-[#e5e2da] dark:border-[#191e2b] space-y-2.5 shadow-sm dark:shadow-lg transition-colors duration-200">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <i data-lucide="credit-card" class="w-4 h-4 text-cyan-600 dark:text-cyan-400"></i>
+              <span class="text-xs font-bold text-slate-900 dark:text-white">Driving Licence</span>
+            </div>
+            <span id="badge-licence" class="text-[9px] px-1.5 py-0.5 rounded font-mono font-bold bg-[#f0ece1] dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-[#e0dad0] dark:border-slate-800">EMPTY</span>
+          </div>
+          <div class="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400 font-mono">
+            <span>BRTA Licence (2 Sides)</span>
+            <div class="flex items-center space-x-1.5">
+              <span id="subbadge-licence-front" class="px-1 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-500">F: Empty</span>
+              <span id="subbadge-licence-back" class="px-1 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-500">B: Empty</span>
+            </div>
+          </div>
+
+          <div id="thumb-wrap-licence" class="w-full h-28 rounded-lg bg-[#f0ece1] dark:bg-[#0e121a] border border-[#e0dad0] dark:border-[#1a202c] flex items-center justify-center overflow-hidden cursor-pointer relative group" onclick="viewDocFullscreen('licence')">
+            <div id="placeholder-licence" class="text-center p-3 text-slate-400 dark:text-slate-500 space-y-1">
+              <i data-lucide="image" class="w-6 h-6 mx-auto opacity-50"></i>
+              <div class="text-[10px] font-mono">No Document Uploaded</div>
+            </div>
+            <img id="img-licence" src="" alt="Licence Preview" class="hidden w-full h-full object-cover">
+            <div class="hidden group-hover:flex absolute inset-0 bg-black/40 items-center justify-center text-white text-[11px] font-bold font-mono space-x-1">
+              <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
+              <span>View Fullscreen</span>
+            </div>
+          </div>
+
+          <!-- Primary: Scan Both Sides (Front first, then Back) -->
+          <button onclick="startTwoSideScan('licence', 'Driving Licence')" class="w-full py-2 px-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-extrabold text-[11px] flex items-center justify-center space-x-1.5 shadow transition active:scale-95">
+            <i data-lucide="camera" class="w-3.5 h-3.5"></i>
+            <span>Scan (Front & Back)</span>
+          </button>
+
+          <!-- Secondary Row: Upload File / PDF + Quick Single Side Rescans -->
+          <div class="grid grid-cols-3 gap-1.5 pt-0.5">
+            <label class="py-1.5 px-1 rounded-xl bg-[#ede9df] hover:bg-[#e4dfd3] dark:bg-[#11151e] dark:hover:bg-[#181f2c] border border-[#dcd6c8] dark:border-[#212735] text-cyan-700 dark:text-cyan-300 font-bold text-[10px] flex items-center justify-center space-x-1 cursor-pointer transition text-center">
+              <i data-lucide="upload" class="w-3 h-3 text-cyan-600 dark:text-cyan-400"></i>
+              <span>Upload/PDF</span>
+              <input type="file" id="input-upload-licence" accept="image/*,application/pdf" class="hidden" onchange="handleDocFileChosen('licence', 'Driving Licence', 'upload', this)">
+            </label>
+            <button onclick="triggerSingleSideScan('licence', 'Driving Licence', 'front')" class="py-1.5 px-1 rounded-xl bg-[#ede9df] hover:bg-[#e4dfd3] dark:bg-[#11151e] dark:hover:bg-[#181f2c] border border-[#dcd6c8] dark:border-[#212735] text-slate-700 dark:text-slate-300 font-bold text-[10px] flex items-center justify-center space-x-1 transition">
+              <i data-lucide="camera" class="w-3 h-3 text-amber-500"></i>
+              <span>Front</span>
+            </button>
+            <button onclick="triggerSingleSideScan('licence', 'Driving Licence', 'back')" class="py-1.5 px-1 rounded-xl bg-[#ede9df] hover:bg-[#e4dfd3] dark:bg-[#11151e] dark:hover:bg-[#181f2c] border border-[#dcd6c8] dark:border-[#212735] text-slate-700 dark:text-slate-300 font-bold text-[10px] flex items-center justify-center space-x-1 transition">
+              <i data-lucide="camera" class="w-3 h-3 text-amber-500"></i>
+              <span>Back</span>
+            </button>
+          </div>
+          <!-- Hidden Inputs for Camera Fallback -->
+          <input type="file" id="input-camera-licence-front" accept="image/*" capture="environment" class="hidden" onchange="handleDocFileChosen('licence', 'Driving Licence', 'front', this)">
+          <input type="file" id="input-camera-licence-back" accept="image/*" capture="environment" class="hidden" onchange="handleDocFileChosen('licence', 'Driving Licence', 'back', this)">
+
+          <button id="btn-del-licence" onclick="deleteDoc('licence')" class="hidden w-full py-1 text-[10px] text-rose-600 dark:text-rose-400 font-mono text-center">
+            Remove Licence
+          </button>
+        </div>
+
+        <!-- Slot 3: Tax Token - 1 Sided -->
+        <div class="p-3.5 rounded-2xl bg-white dark:bg-[#0b0e14] border border-[#e5e2da] dark:border-[#191e2b] space-y-2.5 shadow-sm dark:shadow-lg transition-colors duration-200">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <i data-lucide="file-text" class="w-4 h-4 text-cyan-600 dark:text-cyan-400"></i>
+              <span class="text-xs font-bold text-slate-900 dark:text-white">Tax Token</span>
+            </div>
+            <span id="badge-taxtoken" class="text-[9px] px-1.5 py-0.5 rounded font-mono font-bold bg-[#f0ece1] dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-[#e0dad0] dark:border-slate-800">EMPTY</span>
+          </div>
+          <p class="text-[10px] text-slate-500 dark:text-slate-400">BRTA Motor Vehicle Tax Certificate (Single Side)</p>
+
+          <div id="thumb-wrap-taxtoken" class="w-full h-28 rounded-lg bg-[#f0ece1] dark:bg-[#0e121a] border border-[#e0dad0] dark:border-[#1a202c] flex items-center justify-center overflow-hidden cursor-pointer relative group" onclick="viewDocFullscreen('taxtoken')">
+            <div id="placeholder-taxtoken" class="text-center p-3 text-slate-400 dark:text-slate-500 space-y-1">
+              <i data-lucide="image" class="w-6 h-6 mx-auto opacity-50"></i>
+              <div class="text-[10px] font-mono">No Document Uploaded</div>
+            </div>
+            <img id="img-taxtoken" src="" alt="Tax Token Preview" class="hidden w-full h-full object-cover">
+            <div class="hidden group-hover:flex absolute inset-0 bg-black/40 items-center justify-center text-white text-[11px] font-bold font-mono space-x-1">
+              <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
+              <span>View Fullscreen</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 pt-0.5">
+            <label class="py-2 px-2.5 rounded-xl bg-[#ede9df] hover:bg-[#e4dfd3] dark:bg-[#11151e] dark:hover:bg-[#181f2c] border border-[#dcd6c8] dark:border-[#212735] text-cyan-700 dark:text-cyan-300 font-bold text-[11px] flex items-center justify-center space-x-1.5 cursor-pointer transition">
+              <i data-lucide="upload" class="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400"></i>
+              <span>Upload / PDF</span>
+              <input type="file" id="input-upload-taxtoken" accept="image/*,application/pdf" class="hidden" onchange="handleDocFileChosen('taxtoken', 'Tax Token', 'upload', this)">
+            </label>
+            <button onclick="triggerSingleSideScan('taxtoken', 'Tax Token', 'front')" class="py-2 px-2.5 rounded-xl bg-[#ede9df] hover:bg-[#e4dfd3] dark:bg-[#11151e] dark:hover:bg-[#181f2c] border border-[#dcd6c8] dark:border-[#212735] text-amber-700 dark:text-amber-300 font-bold text-[11px] flex items-center justify-center space-x-1.5 cursor-pointer transition">
+              <i data-lucide="camera" class="w-3.5 h-3.5 text-amber-600 dark:text-amber-400"></i>
+              <span>Scan</span>
+            </button>
+          </div>
+          <!-- Hidden Camera Fallback for Tax Token -->
+          <input type="file" id="input-camera-taxtoken-front" accept="image/*" capture="environment" class="hidden" onchange="handleDocFileChosen('taxtoken', 'Tax Token', 'front', this)">
+
+          <button id="btn-del-taxtoken" onclick="deleteDoc('taxtoken')" class="hidden w-full py-1 text-[10px] text-rose-600 dark:text-rose-400 font-mono text-center">
+            Remove Tax Token
+          </button>
+        </div>
+
+        <!-- Slot 4: Smart Card (Vehicle Registration) - 2 Sided -->
+        <div class="p-3.5 rounded-2xl bg-white dark:bg-[#0b0e14] border border-[#e5e2da] dark:border-[#191e2b] space-y-2.5 shadow-sm dark:shadow-lg transition-colors duration-200">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <i data-lucide="award" class="w-4 h-4 text-cyan-600 dark:text-cyan-400"></i>
+              <span class="text-xs font-bold text-slate-900 dark:text-white">Smart Card</span>
+            </div>
+            <span id="badge-smartcard" class="text-[9px] px-1.5 py-0.5 rounded font-mono font-bold bg-[#f0ece1] dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-[#e0dad0] dark:border-slate-800">EMPTY</span>
+          </div>
+          <div class="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400 font-mono">
+            <span>Vehicle Registration (2 Sides)</span>
+            <div class="flex items-center space-x-1.5">
+              <span id="subbadge-smartcard-front" class="px-1 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-500">F: Empty</span>
+              <span id="subbadge-smartcard-back" class="px-1 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-500">B: Empty</span>
+            </div>
+          </div>
+
+          <div id="thumb-wrap-smartcard" class="w-full h-28 rounded-lg bg-[#f0ece1] dark:bg-[#0e121a] border border-[#e0dad0] dark:border-[#1a202c] flex items-center justify-center overflow-hidden cursor-pointer relative group" onclick="viewDocFullscreen('smartcard')">
+            <div id="placeholder-smartcard" class="text-center p-3 text-slate-400 dark:text-slate-500 space-y-1">
+              <i data-lucide="image" class="w-6 h-6 mx-auto opacity-50"></i>
+              <div class="text-[10px] font-mono">No Document Uploaded</div>
+            </div>
+            <img id="img-smartcard" src="" alt="Smart Card Preview" class="hidden w-full h-full object-cover">
+            <div class="hidden group-hover:flex absolute inset-0 bg-black/40 items-center justify-center text-white text-[11px] font-bold font-mono space-x-1">
+              <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
+              <span>View Fullscreen</span>
+            </div>
+          </div>
+
+          <!-- Primary: Scan Both Sides (Front first, then Back) -->
+          <button onclick="startTwoSideScan('smartcard', 'Smart Card')" class="w-full py-2 px-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-extrabold text-[11px] flex items-center justify-center space-x-1.5 shadow transition active:scale-95">
+            <i data-lucide="camera" class="w-3.5 h-3.5"></i>
+            <span>Scan (Front & Back)</span>
+          </button>
+
+          <!-- Secondary Row: Upload File / PDF + Quick Single Side Rescans -->
+          <div class="grid grid-cols-3 gap-1.5 pt-0.5">
+            <label class="py-1.5 px-1 rounded-xl bg-[#ede9df] hover:bg-[#e4dfd3] dark:bg-[#11151e] dark:hover:bg-[#181f2c] border border-[#dcd6c8] dark:border-[#212735] text-cyan-700 dark:text-cyan-300 font-bold text-[10px] flex items-center justify-center space-x-1 cursor-pointer transition text-center">
+              <i data-lucide="upload" class="w-3 h-3 text-cyan-600 dark:text-cyan-400"></i>
+              <span>Upload/PDF</span>
+              <input type="file" id="input-upload-smartcard" accept="image/*,application/pdf" class="hidden" onchange="handleDocFileChosen('smartcard', 'Smart Card', 'upload', this)">
+            </label>
+            <button onclick="triggerSingleSideScan('smartcard', 'Smart Card', 'front')" class="py-1.5 px-1 rounded-xl bg-[#ede9df] hover:bg-[#e4dfd3] dark:bg-[#11151e] dark:hover:bg-[#181f2c] border border-[#dcd6c8] dark:border-[#212735] text-slate-700 dark:text-slate-300 font-bold text-[10px] flex items-center justify-center space-x-1 transition">
+              <i data-lucide="camera" class="w-3 h-3 text-amber-500"></i>
+              <span>Front</span>
+            </button>
+            <button onclick="triggerSingleSideScan('smartcard', 'Smart Card', 'back')" class="py-1.5 px-1 rounded-xl bg-[#ede9df] hover:bg-[#e4dfd3] dark:bg-[#11151e] dark:hover:bg-[#181f2c] border border-[#dcd6c8] dark:border-[#212735] text-slate-700 dark:text-slate-300 font-bold text-[10px] flex items-center justify-center space-x-1 transition">
+              <i data-lucide="camera" class="w-3 h-3 text-amber-500"></i>
+              <span>Back</span>
+            </button>
+          </div>
+          <!-- Hidden Inputs for Camera Fallback -->
+          <input type="file" id="input-camera-smartcard-front" accept="image/*" capture="environment" class="hidden" onchange="handleDocFileChosen('smartcard', 'Smart Card', 'front', this)">
+          <input type="file" id="input-camera-smartcard-back" accept="image/*" capture="environment" class="hidden" onchange="handleDocFileChosen('smartcard', 'Smart Card', 'back', this)">
+
+          <button id="btn-del-smartcard" onclick="deleteDoc('smartcard')" class="hidden w-full py-1 text-[10px] text-rose-600 dark:text-rose-400 font-mono text-center">
+            Remove Smart Card
+          </button>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 4: TRIPS (Position 4 - Automatic Connection & GPS Ride Tracker)       -->
+    <!-- ========================================================================= -->
+    <section id="view-trips" class="tab-view hidden space-y-4">
+      
+      <!-- Live Ride HUD Card (Auto-starts on BLE connection) -->
+      <div class="bg-white dark:bg-[#0b0e14] border border-[#e5e2da] dark:border-[#191e2b] p-4 sm:p-5 rounded-2xl space-y-4 shadow-sm dark:shadow-xl transition-colors duration-200">
+        
+        <div class="flex justify-between items-center">
+          <div>
+            <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+              <i data-lucide="compass" class="w-4 h-4 text-cyan-600 dark:text-cyan-400"></i>
+              <span>Automatic GPS Ride Tracker</span>
+            </h3>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+              Automatically measures distance, duration, speed & top speed when bike connects.
+            </p>
+          </div>
+          <div id="live-trip-badge" class="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-[10px] font-mono font-bold text-slate-600 dark:text-slate-400 flex items-center space-x-1.5">
+            <span id="live-trip-dot" class="w-2 h-2 rounded-full bg-slate-400 dark:bg-slate-600"></span>
+            <span id="live-trip-status">STANDBY</span>
+          </div>
+        </div>
+
+        <!-- 4 Live Digital Gauges -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+          <!-- Metric 1: Distance -->
+          <div class="p-3 rounded-xl bg-[#f0ece1] dark:bg-[#07090e] border border-[#e0dad0] dark:border-[#161a24] text-center">
+            <div class="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-mono">Distance</div>
+            <div id="hud-trip-dist" class="text-lg font-black font-digital text-cyan-700 dark:text-cyan-400 mt-0.5">0.0 km</div>
+          </div>
+
+          <!-- Metric 2: Duration -->
+          <div class="p-3 rounded-xl bg-[#f0ece1] dark:bg-[#07090e] border border-[#e0dad0] dark:border-[#161a24] text-center">
+            <div class="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-mono">Duration</div>
+            <div id="hud-trip-dur" class="text-lg font-black font-digital text-slate-800 dark:text-slate-200 mt-0.5">00:00</div>
+          </div>
+
+          <!-- Metric 3: Current Speed -->
+          <div class="p-3 rounded-xl bg-[#f0ece1] dark:bg-[#07090e] border border-[#e0dad0] dark:border-[#161a24] text-center">
+            <div class="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-mono">Speed</div>
+            <div id="hud-trip-speed" class="text-lg font-black font-digital text-emerald-700 dark:text-emerald-400 mt-0.5">0 km/h</div>
+          </div>
+
+          <!-- Metric 4: Top Speed -->
+          <div class="p-3 rounded-xl bg-[#f0ece1] dark:bg-[#07090e] border border-[#e0dad0] dark:border-[#161a24] text-center">
+            <div class="text-[10px] text-slate-500 dark:text-slate-400 uppercase font-mono">Top Speed</div>
+            <div id="hud-trip-top" class="text-lg font-black font-digital text-amber-700 dark:text-amber-400 mt-0.5">0 km/h</div>
+          </div>
+        </div>
+
+        <!-- Manual Controls (Optional Override) -->
+        <div class="flex justify-between items-center pt-1 border-t border-[#e0dad0] dark:border-[#161a24]">
+          <span class="text-[10px] text-slate-500 dark:text-slate-400 font-mono">Average Speed: <strong id="hud-trip-avg" class="text-slate-800 dark:text-slate-200">0 km/h</strong></span>
+          <div class="flex items-center space-x-2">
+            <button onclick="manualToggleTrip()" id="btn-manual-trip" class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] transition">
+              Start Trip
+            </button>
+            <button onclick="clearTripLogs()" class="px-2.5 py-1 rounded-lg bg-[#ede9df] hover:bg-[#e4dfd3] dark:bg-[#11151e] dark:hover:bg-[#181f2c] border border-[#dcd6c8] dark:border-[#212735] text-slate-700 dark:text-slate-300 text-[11px]">
+              Clear Logs
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Historical Ride Logs Table -->
+      <div class="bg-white dark:bg-[#0b0e14] border border-[#e5e2da] dark:border-[#191e2b] p-4 sm:p-5 rounded-2xl space-y-3 shadow-sm dark:shadow-xl transition-colors duration-200">
+        <div class="flex justify-between items-center">
+          <span class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider font-mono">Recorded Connection & Ride Logs</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-600 dark:text-slate-400">
+            <thead class="text-[10px] uppercase font-mono bg-[#f0ece1] dark:bg-[#07090e] text-slate-700 dark:text-slate-400">
+              <tr>
+                <th class="p-2.5">Date</th>
+                <th class="p-2.5">Distance</th>
+                <th class="p-2.5">Duration</th>
+                <th class="p-2.5">Top Speed</th>
+                <th class="p-2.5">Avg Speed</th>
+              </tr>
+            </thead>
+            <tbody id="trip-logs-body" class="divide-y divide-[#e5e2da] dark:divide-[#161a24] font-mono">
+              <tr>
+                <td colspan="5" class="p-4 text-center text-slate-400">No recorded trips yet. Ride with Bluetooth connected to log data.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========================================================================= -->
+    <!-- VIEW 5: CT (Position 5 - Clean, No 'Modal Test', No 'LCD Photo Match')     -->
+    <!-- ========================================================================= -->
+    <!-- ========================================================================= -->
+    <!-- VIEW 5: CT (Position 5 - Clean 'Nearby Devices' List Style, Test Buttons)  -->
+    <!-- ========================================================================= -->
+    <section id="view-ct" class="tab-view hidden space-y-4">
+      
+      <div class="bg-white dark:bg-[#0b0e14] border border-[#e5e2da] dark:border-[#191e2b] p-4 sm:p-5 rounded-2xl space-y-4 shadow-sm dark:shadow-xl transition-colors duration-200">
+        
+        <!-- CT Header & Heartbeat -->
+        <div class="flex items-center justify-between pb-2 border-b border-[#e5e2da] dark:border-[#191e2b]">
+          <div>
+            <h3 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center space-x-2">
+              <i data-lucide="sliders-horizontal" class="w-4 h-4 text-cyan-600 dark:text-cyan-400"></i>
+              <span>Console Telematics & Alerts (CT)</span>
+            </h3>
+          </div>
+          <div class="flex items-center space-x-1.5 font-mono text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span id="ct-heartbeat-status">1s Heartbeat Active (0xC0)</span>
+          </div>
+        </div>
+
+        <!-- Alert Simulation Group -->
+        <div class="space-y-2">
+          <div class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-mono">
+            Cluster Alerts
+          </div>
+
+          <!-- Test SMS Alert -->
+          <div class="p-3 rounded-xl bg-[#f0ece1] dark:bg-[#0e121a] border border-[#e0dad0] dark:border-[#1a202c] flex items-center justify-between">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-7 h-7 rounded-lg bg-white/80 dark:bg-slate-800/80 flex items-center justify-center text-amber-600 dark:text-amber-400">
+                <i data-lucide="mail" class="w-4 h-4"></i>
+              </div>
+              <span class="font-bold text-xs text-slate-900 dark:text-white">Test SMS Alert</span>
+            </div>
+            <button onclick="testSmsAlert()" class="px-3.5 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs font-mono shadow-sm transition">
+              Test
+            </button>
+          </div>
+
+          <!-- Test WhatsApp Alert -->
+          <div class="p-3 rounded-xl bg-[#f0ece1] dark:bg-[#0e121a] border border-[#e0dad0] dark:border-[#1a202c] flex items-center justify-between">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-7 h-7 rounded-lg bg-white/80 dark:bg-slate-800/80 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                <i data-lucide="message-square" class="w-4 h-4"></i>
+              </div>
+              <span class="font-bold text-xs text-slate-900 dark:text-white">Test WhatsApp Alert</span>
+            </div>
+            <button onclick="testWhatsAppAlert()" class="px-3.5 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs font-mono shadow-sm transition">
+              Test
+            </button>
+          </div>
+
+          <!-- Test Caller ID -->
+          <div class="p-3 rounded-xl bg-[#f0ece1] dark:bg-[#0e121a] border border-[#e0dad0] dark:border-[#1a202c] flex items-center justify-between">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-7 h-7 rounded-lg bg-white/80 dark:bg-slate-800/80 flex items-center justify-center text-cyan-600 dark:text-cyan-400">
+                <i data-lucide="phone-call" class="w-4 h-4"></i>
+              </div>
+              <span class="font-bold text-xs text-slate-900 dark:text-white">Test Caller ID</span>
+            </div>
+            <button onclick="testCallerId()" class="px-3.5 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs font-mono shadow-sm transition">
+              Test
+            </button>
+          </div>
+
+          <!-- Dismiss Active Alert -->
+          <div class="p-3 rounded-xl bg-[#f0ece1] dark:bg-[#0e121a] border border-[#e0dad0] dark:border-[#1a202c] flex items-center justify-between">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-7 h-7 rounded-lg bg-white/80 dark:bg-slate-800/80 flex items-center justify-center text-rose-600 dark:text-rose-400">
+                <i data-lucide="phone-off" class="w-4 h-4"></i>
+              </div>
+              <span class="font-bold text-xs text-slate-900 dark:text-white">Dismiss Active Alert</span>
+            </div>
+            <button onclick="dismissAlert()" class="px-3.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs font-mono shadow-sm transition">
+              Clear
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Cluster Maneuver Direction Tests Group -->
+        <div class="space-y-2 pt-2">
+          <div class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider font-mono">
+            Cluster Maneuver Direction Tests
+          </div>
+
+          <!-- Preview Connected Popup -->
+          <div class="p-3 rounded-xl bg-[#f0ece1] dark:bg-[#0e121a] border border-[#e0dad0] dark:border-[#1a202c] flex items-center justify-between">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-7 h-7 rounded-lg bg-white/80 dark:bg-slate-800/80 flex items-center justify-center text-amber-600 dark:text-amber-400">
+                <i data-lucide="sparkles" class="w-4 h-4"></i>
+              </div>
+              <span class="font-bold text-xs text-slate-900 dark:text-white">Connected Popup Preview</span>
+            </div>
+            <button onclick="showN160ConnectedPopup()" class="px-3.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs font-mono shadow-sm transition">
+              Test
+            </button>
+          </div>
+
+          <!-- TURN 143 m • ETD 14 Km ('I') -->
+          <div class="p-3 rounded-xl bg-[#f0ece1] dark:bg-[#0e121a] border border-[#e0dad0] dark:border-[#1a202c] flex items-center justify-between">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-7 h-7 rounded-lg bg-white/80 dark:bg-slate-800/80 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                <i data-lucide="corner-up-left" class="w-4 h-4"></i>
+              </div>
+              <span class="font-bold text-xs text-slate-900 dark:text-white">TURN 143 m &bull; ETD 14 Km ('I')</span>
+            </div>
+            <button onclick="testManeuver('I', 143, 'Mirpur Road', 0, 14000, 25)" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs font-mono shadow-sm transition">
+              Test
+            </button>
+          </div>
+
+          <!-- U-Turn Right 200m ('P') -->
+          <div class="p-3 rounded-xl bg-[#f0ece1] dark:bg-[#0e121a] border border-[#e0dad0] dark:border-[#1a202c] flex items-center justify-between">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-7 h-7 rounded-lg bg-white/80 dark:bg-slate-800/80 flex items-center justify-center text-cyan-600 dark:text-cyan-400">
+                <i data-lucide="rotate-cw" class="w-4 h-4"></i>
+              </div>
+              <span class="font-bold text-xs text-slate-900 dark:text-white">U-Turn Right 200m ('P')</span>
+            </div>
+            <button onclick="testManeuver('P', 200, 'Mirpur Road', 0, 8000, 15)" class="px-3.5 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs font-mono shadow-sm transition">
+              Test
+            </button>
+          </div>
+
+          <!-- U-Turn Left 200m ('O') -->
+          <div class="p-3 rounded-xl bg-[#f0ece1] dark:bg-[#0e121a] border border-[#e0dad0] dark:border-[#1a202c] flex items-center justify-between">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-7 h-7 rounded-lg bg-white/80 dark:bg-slate-800/80 flex items-center justify-center text-cyan-600 dark:text-cyan-400">
+                <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+              </div>
+              <span class="font-bold text-xs text-slate-900 dark:text-white">U-Turn Left 200m ('O')</span>
+            </div>
+            <button onclick="testManeuver('O', 200, 'Mirpur Road', 0, 8000, 15)" class="px-3.5 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs font-mono shadow-sm transition">
+              Test
+            </button>
+          </div>
+
+          <!-- Roundabout Exit 2 ('U') -->
+          <div class="p-3 rounded-xl bg-[#f0ece1] dark:bg-[#0e121a] border border-[#e0dad0] dark:border-[#1a202c] flex items-center justify-between">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-7 h-7 rounded-lg bg-white/80 dark:bg-slate-800/80 flex items-center justify-center text-cyan-600 dark:text-cyan-400">
+                <i data-lucide="circle-dot" class="w-4 h-4"></i>
+              </div>
+              <span class="font-bold text-xs text-slate-900 dark:text-white">Roundabout Exit 2 ('U')</span>
+            </div>
+            <button onclick="testManeuver('U', 300, 'Gulshan Circle 1', 2, 6000, 12)" class="px-3.5 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs font-mono shadow-sm transition">
+              Test
+            </button>
+          </div>
+
+          <!-- Roundabout Exit 1 ('U') -->
+          <div class="p-3 rounded-xl bg-[#f0ece1] dark:bg-[#0e121a] border border-[#e0dad0] dark:border-[#1a202c] flex items-center justify-between">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-7 h-7 rounded-lg bg-white/80 dark:bg-slate-800/80 flex items-center justify-center text-cyan-600 dark:text-cyan-400">
+                <i data-lucide="circle-dot" class="w-4 h-4"></i>
+              </div>
+              <span class="font-bold text-xs text-slate-900 dark:text-white">Roundabout Exit 1 ('U')</span>
+            </div>
+            <button onclick="testManeuver('U', 300, 'Gulshan Circle 2', 1, 6000, 12)" class="px-3.5 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs font-mono shadow-sm transition">
+              Test
+            </button>
+          </div>
+
+          <!-- Sharp Right ('J') -->
+          <div class="p-3 rounded-xl bg-[#f0ece1] dark:bg-[#0e121a] border border-[#e0dad0] dark:border-[#1a202c] flex items-center justify-between">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-7 h-7 rounded-lg bg-white/80 dark:bg-slate-800/80 flex items-center justify-center text-cyan-600 dark:text-cyan-400">
+                <i data-lucide="corner-down-right" class="w-4 h-4"></i>
+              </div>
+              <span class="font-bold text-xs text-slate-900 dark:text-white">Sharp Right 300m ('J')</span>
+            </div>
+            <button onclick="testManeuver('J', 300, 'Kawran Bazar', 0, 5000, 10)" class="px-3.5 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs font-mono shadow-sm transition">
+              Test
+            </button>
+          </div>
+
+          <!-- Sharp Left ('I') -->
+          <div class="p-3 rounded-xl bg-[#f0ece1] dark:bg-[#0e121a] border border-[#e0dad0] dark:border-[#1a202c] flex items-center justify-between">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-7 h-7 rounded-lg bg-white/80 dark:bg-slate-800/80 flex items-center justify-center text-cyan-600 dark:text-cyan-400">
+                <i data-lucide="corner-down-left" class="w-4 h-4"></i>
+              </div>
+              <span class="font-bold text-xs text-slate-900 dark:text-white">Sharp Left 300m ('I')</span>
+            </div>
+            <button onclick="testManeuver('I', 300, 'Panthapath', 0, 5000, 10)" class="px-3.5 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs font-mono shadow-sm transition">
+              Test
+            </button>
+          </div>
+
+          <!-- Bear Right ('D') -->
+          <div class="p-3 rounded-xl bg-[#f0ece1] dark:bg-[#0e121a] border border-[#e0dad0] dark:border-[#1a202c] flex items-center justify-between">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-7 h-7 rounded-lg bg-white/80 dark:bg-slate-800/80 flex items-center justify-center text-cyan-600 dark:text-cyan-400">
+                <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+              </div>
+              <span class="font-bold text-xs text-slate-900 dark:text-white">Bear Right 150m ('D')</span>
+            </div>
+            <button onclick="testManeuver('D', 150, 'Airport Road', 0, 12000, 20)" class="px-3.5 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs font-mono shadow-sm transition">
+              Test
+            </button>
+          </div>
+
+          <!-- Bear Left ('C') -->
+          <div class="p-3 rounded-xl bg-[#f0ece1] dark:bg-[#0e121a] border border-[#e0dad0] dark:border-[#1a202c] flex items-center justify-between">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-7 h-7 rounded-lg bg-white/80 dark:bg-slate-800/80 flex items-center justify-center text-cyan-600 dark:text-cyan-400">
+                <i data-lucide="arrow-up-left" class="w-4 h-4"></i>
+              </div>
+              <span class="font-bold text-xs text-slate-900 dark:text-white">Bear Left 150m ('C')</span>
+            </div>
+            <button onclick="testManeuver('C', 150, 'Mohakhali Flyover', 0, 12000, 20)" class="px-3.5 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs font-mono shadow-sm transition">
+              Test
+            </button>
+          </div>
+
+          <!-- Continue Straight 500m ('A') -->
+          <div class="p-3 rounded-xl bg-[#f0ece1] dark:bg-[#0e121a] border border-[#e0dad0] dark:border-[#1a202c] flex items-center justify-between">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-7 h-7 rounded-lg bg-white/80 dark:bg-slate-800/80 flex items-center justify-center text-cyan-600 dark:text-cyan-400">
+                <i data-lucide="arrow-up" class="w-4 h-4"></i>
+              </div>
+              <span class="font-bold text-xs text-slate-900 dark:text-white">Continue Straight 500m ('A')</span>
+            </div>
+            <button onclick="testManeuver('A', 500, 'Expressway', 0, 25000, 30)" class="px-3.5 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs font-mono shadow-sm transition">
+              Test
+            </button>
+          </div>
+
+          <!-- Keep Left 250m ('B') -->
+          <div class="p-3 rounded-xl bg-[#f0ece1] dark:bg-[#0e121a] border border-[#e0dad0] dark:border-[#1a202c] flex items-center justify-between">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-7 h-7 rounded-lg bg-white/80 dark:bg-slate-800/80 flex items-center justify-center text-cyan-600 dark:text-cyan-400">
+                <i data-lucide="git-fork" class="w-4 h-4"></i>
+              </div>
+              <span class="font-bold text-xs text-slate-900 dark:text-white">Keep Left 250m ('B')</span>
+            </div>
+            <button onclick="testManeuver('B', 250, 'Gulshan Avenue', 0, 18000, 22)" class="px-3.5 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs font-mono shadow-sm transition">
+              Test
+            </button>
+          </div>
+
+          <!-- Destination Arrived ('R') -->
+          <div class="p-3 rounded-xl bg-[#f0ece1] dark:bg-[#0e121a] border border-[#e0dad0] dark:border-[#1a202c] flex items-center justify-between">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-7 h-7 rounded-lg bg-white/80 dark:bg-slate-800/80 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                <i data-lucide="flag" class="w-4 h-4"></i>
+              </div>
+              <span class="font-bold text-xs text-slate-900 dark:text-white">Destination Arrived ('R')</span>
+            </div>
+            <button onclick="testManeuver('R', 0, 'Destination', 0, 0, 0)" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs font-mono shadow-sm transition">
+              Test
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- POPUP MODAL: "YOUR N160 USD IS CONNECTED"                                 -->
+  <!-- ========================================================================= -->
+  <div id="n160-connected-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md hidden transition-opacity duration-300">
+    <div class="bg-white dark:bg-[#0b0e14] border border-amber-500/50 rounded-3xl max-w-sm w-full p-5 space-y-4 shadow-2xl relative overflow-hidden">
+      <!-- Ambient Glows -->
+      <div class="absolute -top-16 -right-16 w-36 h-36 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-16 -left-16 w-36 h-36 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+      <!-- Motorcycle Image Container -->
+      <div class="relative rounded-2xl overflow-hidden border border-[#e5e2da] dark:border-[#212735] shadow-inner bg-black">
+        <img src="n160_usd_black.jpg" alt="Bajaj Pulsar N160 USD Brooklyn Black" class="w-full h-44 object-cover object-center">
+        
+        <!-- Floating Aesthetic Bluetooth Badge -->
+        <div class="absolute bottom-2.5 right-2.5 flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-black/85 backdrop-blur-md border border-cyan-500/70 text-cyan-400 font-mono text-[10px] font-bold shadow-lg">
+          <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+          <i data-lucide="bluetooth" class="w-3.5 h-3.5 text-cyan-400"></i>
+          <span>PAIRED</span>
+        </div>
+
+        <!-- Golden USD Badge -->
+        <div class="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded bg-amber-500/90 text-black font-black text-[9px] tracking-wider uppercase font-mono shadow">
+          USD Inverted Forks
+        </div>
+      </div>
+
+      <!-- Connection Info -->
+      <div class="text-center space-y-1">
+        <h3 class="text-base font-black text-slate-900 dark:text-white tracking-wider flex items-center justify-center space-x-1.5">
+          <span>Your N160 UGP is Connected</span>
+          <i data-lucide="check-circle" class="w-4 h-4 text-emerald-500"></i>
+        </h3>
+        <p class="text-xs text-slate-500 dark:text-slate-400 font-mono">
+          PULSAR0123 &bull; Brooklyn Black Link Active
+        </p>
+        <div class="text-[11px] text-amber-700 dark:text-amber-300 font-mono pt-0.5">
+          Ready for real-time Google Maps turn streaming
+        </div>
+      </div>
+
+      <!-- Auto-redirect progress bar (2 seconds) -->
+      <div class="space-y-1.5 pt-1">
+        <div class="flex justify-between text-[10px] font-mono text-slate-500 dark:text-slate-400">
+          <span>Redirecting to Maps</span>
+          <span id="connected-countdown-text">2s</span>
+        </div>
+        <div class="w-full h-1.5 bg-[#e5e2da] dark:bg-[#171c26] rounded-full overflow-hidden">
+          <div id="connected-progress-bar" class="h-full bg-gradient-to-r from-amber-500 via-cyan-400 to-emerald-400 transition-all duration-[2000ms] ease-linear" style="width: 100%;"></div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="space-y-2 pt-1">
+        <button onclick="confirmRedirectToMaps()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-400 hover:from-cyan-400 hover:to-emerald-300 text-black font-extrabold text-xs transition flex items-center justify-center space-x-2 shadow-lg">
+          <span>Go to Maps Now</span>
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+        <button onclick="closeConnectedModal()" class="w-full py-1 text-xs text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition">
+          Stay on Console
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- POPUP MODAL: "SYSTEM SOFTWARE UPDATE"                                     -->
+  <!-- ========================================================================= -->
+  <div id="app-update-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md hidden transition-opacity duration-300">
+    <div class="bg-white dark:bg-[#0b0e14] border border-[#e5e2da] dark:border-[#212735] rounded-3xl max-w-sm w-full p-5 space-y-4 shadow-2xl relative overflow-hidden">
+      <!-- Ambient Glows -->
+      <div class="absolute -top-16 -right-16 w-36 h-36 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-16 -left-16 w-36 h-36 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+      <!-- Header with Update Icon -->
+      <div class="flex items-center space-x-3">
+        <div class="w-12 h-12 rounded-2xl bg-[#ede9df] dark:bg-[#151a24] border border-[#dcd6c8] dark:border-[#242c3d] flex items-center justify-center flex-shrink-0 shadow-sm">
+          <img src="data:image/png;base64,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" alt="Update" style="width: 28px; height: 28px; object-fit: contain; display: inline-block;" />
+        </div>
+        <div>
+          <h3 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
+            N160 UGP
+          </h3>
+          <div id="update-modal-subtitle" class="text-xs text-slate-500 dark:text-slate-400 font-mono">
+            System Software Update
+          </div>
+        </div>
+      </div>
+
+      <!-- State 1: Checking State -->
+      <div id="update-modal-checking" class="hidden py-6 text-center space-y-2 font-mono">
+        <div class="w-8 h-8 border-2 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+        <div class="text-xs text-slate-600 dark:text-slate-300 font-bold">Checking for updates on GitHub...</div>
+      </div>
+
+      <!-- State 2: Up to Date State -->
+      <div id="update-modal-latest" class="hidden p-4 rounded-2xl bg-[#f0ece1] dark:bg-[#0c0f17] border border-[#e0dad0] dark:border-[#1a202c] text-center space-y-1.5">
+        <i data-lucide="check-circle-2" class="w-8 h-8 text-emerald-500 mx-auto"></i>
+        <div class="font-bold text-xs text-slate-900 dark:text-white">This is the latest version!</div>
+        <div id="update-latest-version-txt" class="text-[11px] text-slate-500 dark:text-slate-400 font-mono">N160 UGP v1.3.0</div>
+      </div>
+
+      <!-- State 3: Update Available State -->
+      <div id="update-modal-available" class="space-y-3">
+        <div class="p-3.5 rounded-2xl bg-[#f0ece1] dark:bg-[#0c0f17] border border-[#e0dad0] dark:border-[#1a202c] space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 font-mono">NEW VERSION</span>
+            <span id="update-new-version-badge" class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-[10px] font-bold font-mono">New Version Available</span>
+          </div>
+          <div class="text-xs font-mono text-slate-700 dark:text-slate-300">
+            <span class="text-slate-400">Current:</span> <span id="update-curr-version">v1.3.0</span> &rarr; <span class="text-emerald-500 font-bold">New:</span> <span id="update-avail-version">v1.3.1</span>
+          </div>
+          <div class="border-t border-[#e5e2da] dark:border-[#1e2535] pt-2">
+            <div class="text-[10px] uppercase font-bold text-slate-400 font-mono mb-1">Release Notes</div>
+            <div id="update-release-notes" class="text-[11px] text-slate-600 dark:text-slate-300 font-mono leading-relaxed max-h-24 overflow-y-auto pr-1">
+              Bug fixes, stability improvements, and enhanced Bluetooth cluster sync.
+            </div>
+          </div>
+        </div>
+
+        <!-- Download Progress Bar (visible during download) -->
+        <div id="update-progress-container" class="hidden space-y-1.5">
+          <div class="flex justify-between text-[10px] font-mono">
+            <span id="update-progress-status" class="text-cyan-600 dark:text-cyan-400 font-bold">Downloading update...</span>
+            <span id="update-progress-pct" class="text-slate-500 dark:text-slate-400">0%</span>
+          </div>
+          <div class="w-full h-2 bg-[#e5e2da] dark:bg-[#1a202c] rounded-full overflow-hidden">
+            <div id="update-progress-bar" class="h-full bg-gradient-to-r from-cyan-500 to-emerald-400 transition-all duration-150 ease-out" style="width: 0%;"></div>
+          </div>
+          <div id="update-progress-bytes" class="text-[9px] text-slate-400 font-mono text-right">0 MB / 0 MB</div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="space-y-2 pt-1">
+        <button id="update-download-btn" onclick="triggerDownloadUpdate()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-black font-extrabold text-xs transition flex items-center justify-center space-x-2 shadow-lg">
+          <i data-lucide="download" class="w-4 h-4"></i>
+          <span>Download & Install Update</span>
+        </button>
+        <button onclick="closeUpdateModal()" class="w-full py-1 text-xs text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- FULLSCREEN DOCUMENT VIEWER MODAL                                          -->
+  <!-- ========================================================================= -->
+  <div id="doc-fullscreen-modal" class="fixed inset-0 z-50 flex flex-col justify-between p-4 bg-black/95 backdrop-blur-lg hidden">
+    <!-- Top Bar -->
+    <div class="flex items-center justify-between pb-3 border-b border-[#1c2230]">
+      <div>
+        <h4 id="fullscreen-doc-title" class="text-sm font-bold text-white">Document</h4>
+        <div id="fullscreen-doc-subtitle" class="text-[10px] text-emerald-400 font-mono">Official Motorcycle Record</div>
+      </div>
+      <div class="flex items-center space-x-2">
+        <div id="doc-side-tabs" class="hidden flex items-center space-x-1 p-0.5 rounded-lg bg-[#141822] border border-[#212735]">
+          <button onclick="switchDocFullscreenSide('combined')" id="tab-side-combined" class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-cyan-600 text-white">Both Sides</button>
+          <button onclick="switchDocFullscreenSide('front')" id="tab-side-front" class="px-2 py-0.5 rounded text-[10px] font-mono font-bold text-slate-400 hover:text-white">Front</button>
+          <button onclick="switchDocFullscreenSide('back')" id="tab-side-back" class="px-2 py-0.5 rounded text-[10px] font-mono font-bold text-slate-400 hover:text-white">Back</button>
+        </div>
+        <button onclick="closeDocFullscreen()" class="p-1.5 rounded-lg bg-[#141822] text-slate-300 hover:text-white">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Viewer Center Area -->
+    <div class="flex-1 flex items-center justify-center p-2 overflow-auto">
+      <img id="fullscreen-doc-img" src="" alt="Fullscreen Document" class="max-w-full max-h-[75vh] object-contain rounded-xl shadow-2xl transition-all duration-200">
+    </div>
+
+    <!-- Bottom Bar -->
+    <div class="pt-3 border-t border-[#1c2230] flex justify-between items-center text-xs font-mono text-slate-400">
+      <span id="fullscreen-doc-status-text">High-Res Encrypted Vault</span>
+      <button onclick="downloadActiveDoc()" class="px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs flex items-center space-x-1.5 shadow-lg active:scale-95 transition">
+        <i data-lucide="download" class="w-4 h-4"></i>
+        <span>Save to Gallery</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MOBILE BOTTOM NAVIGATION BAR: Cluster Link > Maps > Document > Trips > CT -->
+  <!-- ========================================================================= -->
+  <nav class="border-t border-[#e5e2da] dark:border-[#141822] bg-white/95 dark:bg-[#000000]/95 backdrop-blur-md px-2 py-2 flex justify-around fixed bottom-0 left-0 right-0 z-40 text-[10px] font-medium transition-colors duration-200">
+    
+    <!-- Tab 1: Cluster Link -->
+    <button onclick="switchTab('telematics')" id="m-tab-telematics" class="tab-btn flex flex-col items-center text-cyan-600 dark:text-cyan-400 transition">
+      <i data-lucide="bluetooth" class="w-5 h-5"></i>
+      <span class="mt-0.5">Cluster Link</span>
+    </button>
+
+    <!-- Tab 2: Maps -->
+    <button onclick="switchTab('navigation')" id="m-tab-navigation" class="tab-btn flex flex-col items-center text-slate-500 dark:text-slate-400 transition">
+      <i data-lucide="navigation-2" class="w-5 h-5"></i>
+      <span class="mt-0.5">Maps</span>
+    </button>
+
+    <!-- Tab 3: Document -->
+    <button onclick="switchTab('documents')" id="m-tab-documents" class="tab-btn flex flex-col items-center text-slate-500 dark:text-slate-400 transition">
+      <i data-lucide="shield-check" class="w-5 h-5"></i>
+      <span class="mt-0.5">Document</span>
+    </button>
+
+    <!-- Tab 4: Trips -->
+    <button onclick="switchTab('trips')" id="m-tab-trips" class="tab-btn flex flex-col items-center text-slate-500 dark:text-slate-400 transition">
+      <i data-lucide="compass" class="w-5 h-5"></i>
+      <span class="mt-0.5">Trips</span>
+    </button>
+
+    <!-- Tab 5: CT -->
+    <button onclick="switchTab('ct')" id="m-tab-ct" class="tab-btn flex flex-col items-center text-slate-500 dark:text-slate-400 transition">
+      <i data-lucide="sliders-horizontal" class="w-5 h-5"></i>
+      <span class="mt-0.5">CT</span>
+    </button>
+
+  </nav>
+
+  <!-- ========================================================================= -->
+  <!-- APPLICATION SCRIPT                                                        -->
+  <!-- ========================================================================= -->
+  <script>
+    // --- Application State ---
+    let userLat = 23.8103; // Bangladesh
+    let userLng = 90.4125;
+    let gpsWatchId = null;
+    let connectedRedirectTimer = null;
+    let activeFullscreenDocKey = null;
+
+    // --- Theme Switcher Engine (Cream/White vs AMOLED Black) ---
+    function toggleTheme() {
+      const isDark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('n160_theme', isDark ? 'dark' : 'light');
+      updateThemeUI(isDark);
+    }
+
+    function updateThemeUI(isDark) {
+      const btnText = document.getElementById('theme-toggle-text');
+      const btnIcon = document.getElementById('theme-toggle-icon');
+      const themeMeta = document.querySelector('meta[name="theme-color"]');
+      
+      if (btnText) btnText.innerText = isDark ? 'Light' : 'Dark';
+      if (btnIcon && window.lucide) {
+        btnIcon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+        lucide.createIcons();
+      }
+      if (themeMeta) {
+        themeMeta.setAttribute('content', isDark ? '#000000' : '#f7f5f0');
+      }
+      if (window.AndroidBle && window.AndroidBle.setSystemBarTheme) {
+        window.AndroidBle.setSystemBarTheme(isDark);
+      }
+    }
+
+    // --- Tab Switching Logic (Exact 5 Tab Order) ---
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('text-cyan-600', 'dark:text-cyan-400');
+        btn.classList.add('text-slate-500', 'dark:text-slate-400');
+      });
+
+      const activeView = document.getElementById(`view-${tabId}`);
+      if (activeView) activeView.classList.remove('hidden');
+
+      const activeBtn = document.getElementById(`m-tab-${tabId}`);
+      if (activeBtn) {
+        activeBtn.classList.remove('text-slate-500', 'dark:text-slate-400');
+        activeBtn.classList.add('text-cyan-600', 'dark:text-cyan-400');
+      }
+
+      // Top menu header is only available in Cluster Link (telematics) tab
+      const appHeader = document.getElementById('app-header');
+      if (appHeader) {
+        if (tabId === 'telematics') {
+          appHeader.classList.remove('hidden');
+        } else {
+          appHeader.classList.add('hidden');
+        }
+      }
+    }
+
+    // --- Google Maps Launch Action ---
+    function launchNativeGoogleMapsApp() {
+      if (window.AndroidBle && window.AndroidBle.openGoogleMapsApp) {
+        window.AndroidBle.openGoogleMapsApp();
+      } else if (window.AndroidBle && window.AndroidBle.openGoogleMaps) {
+        window.AndroidBle.openGoogleMaps('');
+      } else {
+        window.open('https://maps.google.com', '_blank');
+      }
+    }
+
+    // --- Connection Popup & 2-Second Redirect ---
+    let hasShownConnectedPopup = false;
+    function triggerConnectedPopupOnce() {
+      if (hasShownConnectedPopup) return;
+      hasShownConnectedPopup = true;
+      showN160ConnectedPopup();
+    }
+
+    function showN160ConnectedPopup() {
+      const modal = document.getElementById('n160-connected-modal');
+      const progressBar = document.getElementById('connected-progress-bar');
+      const countText = document.getElementById('connected-countdown-text');
+      if (!modal) return;
+
+      modal.classList.remove('hidden');
+      if (progressBar) {
+        progressBar.style.transition = 'none';
+        progressBar.style.width = '100%';
+        setTimeout(() => {
+          progressBar.style.transition = 'width 2000ms linear';
+          progressBar.style.width = '0%';
+        }, 50);
+      }
+
+      let remaining = 2;
+      const timer = setInterval(() => {
+        remaining -= 1;
+        if (countText) countText.innerText = `${Math.max(0, remaining)}s`;
+        if (remaining <= 0) clearInterval(timer);
+      }, 1000);
+
+      clearTimeout(connectedRedirectTimer);
+      connectedRedirectTimer = setTimeout(() => {
+        confirmRedirectToMaps();
+      }, 2000);
+    }
+
+    function confirmRedirectToMaps() {
+      clearTimeout(connectedRedirectTimer);
+      closeConnectedModal();
+      switchTab('navigation');
+    }
+
+    function closeConnectedModal() {
+      clearTimeout(connectedRedirectTimer);
+      const modal = document.getElementById('n160-connected-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    // --- Document Corner Detection & Contrast Engine ---
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.min.js';
+    }
+
+    // State for active scan flows
+    window.pendingScanFlow = null;
+    let activeFullscreenDoc = null;
+    let activeFullscreenSide = 'combined';
+
+    // Start 2-sided scan flow (Scan Front first, then Back)
+    function startTwoSideScan(docKey, title) {
+      window.pendingScanFlow = { docKey, title, currentStep: 'front' };
+      if (window.AndroidBle && window.AndroidBle.showToast) {
+        window.AndroidBle.showToast(`Step 1/2: Scan ${title} FRONT side`);
+      }
+      triggerScanSide(docKey, title, 'front');
+    }
+
+    function triggerSingleSideScan(docKey, title, side) {
+      window.pendingScanFlow = { docKey, title, currentStep: side, singleOnly: true };
+      if (window.AndroidBle && window.AndroidBle.showToast) {
+        window.AndroidBle.showToast(`Scanning ${title} ${side.toUpperCase()} side`);
+      }
+      triggerScanSide(docKey, title, side);
+    }
+
+    function triggerScanSide(docKey, title, side) {
+      if (window.AndroidBle && window.AndroidBle.launchCameraScan) {
+        window.AndroidBle.launchCameraScan(docKey, side);
+      } else {
+        const inp = document.getElementById(`input-camera-${docKey}-${side}`);
+        if (inp) inp.click();
+      }
+    }
+
+    // Native Camera Callback from MainActivity
+    window.onCameraPhotoCaptured = async function(docKey, side, dataUrl) {
+      if (window.AndroidBle && window.AndroidBle.showToast) {
+        window.AndroidBle.showToast(`Enhancing ${side.toUpperCase()} side...`);
+      }
+      const img = new Image();
+      img.onload = async () => {
+        const enhancedDataUrl = processDocumentImage(img);
+        await saveDocSide(docKey, side, enhancedDataUrl);
+        await loadAllSavedDocs();
+
+        const flow = window.pendingScanFlow;
+        if (flow && flow.docKey === docKey && flow.currentStep === 'front' && !flow.singleOnly) {
+          flow.currentStep = 'back';
+          if (window.AndroidBle && window.AndroidBle.showToast) {
+            window.AndroidBle.showToast(`Front side saved! Now scan BACK side...`);
+          }
+          setTimeout(() => {
+            triggerScanSide(docKey, flow.title, 'back');
+          }, 700);
+        } else {
+          window.pendingScanFlow = null;
+          if (window.AndroidBle && window.AndroidBle.showToast) {
+            window.AndroidBle.showToast(`${docKey.toUpperCase()} saved in document vault!`);
+          }
+        }
+      };
+      img.src = dataUrl;
+    };
+
+    async function handleDocFileChosen(docKey, title, mode, inputEl) {
+      const file = inputEl.files && inputEl.files[0];
+      if (!file) return;
+
+      if (window.AndroidBle && window.AndroidBle.showToast) {
+        window.AndroidBle.showToast(`Processing ${title}...`);
+      }
+
+      const isPdf = file.type.includes('pdf') || file.name.toLowerCase().endsWith('.pdf');
+
+      if (isPdf) {
+        try {
+          if (window.pdfjsLib) {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            const numPages = pdf.numPages;
+
+            const renderedCanvases = [];
+            for (let p = 1; p <= numPages; p++) {
+              const page = await pdf.getPage(p);
+              const viewport = page.getViewport({ scale: 2.2 });
+              const c = document.createElement('canvas');
+              c.width = viewport.width;
+              c.height = viewport.height;
+              const ctx = c.getContext('2d');
+              await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+              renderedCanvases.push(c);
+            }
+
+            const isTwoSided = (docKey !== 'taxtoken');
+
+            if (isTwoSided && numPages >= 2) {
+              // Page 1 is Front, Page 2 is Back
+              const img1 = await loadImageFromCanvas(renderedCanvases[0]);
+              const img2 = await loadImageFromCanvas(renderedCanvases[1]);
+              const frontEnhanced = processDocumentImage(img1);
+              const backEnhanced = processDocumentImage(img2);
+
+              const doc = (await getDocFromDb(docKey)) || { id: docKey, title };
+              doc.frontUrl = frontEnhanced;
+              doc.backUrl = backEnhanced;
+              doc.dataUrl = await stitchFrontAndBack(frontEnhanced, backEnhanced);
+              doc.isTwoSided = true;
+              doc.updatedAt = new Date().toISOString();
+              await putDocToDb(doc);
+              await loadAllSavedDocs();
+              if (window.AndroidBle && window.AndroidBle.showToast) {
+                window.AndroidBle.showToast(`${title} (Front & Back) converted from PDF & saved!`);
+              }
+            } else if (numPages === 1) {
+              const img1 = await loadImageFromCanvas(renderedCanvases[0]);
+              const enhanced = processDocumentImage(img1);
+              await saveDocSide(docKey, isTwoSided ? 'front' : 'combined', enhanced, title);
+              await loadAllSavedDocs();
+              if (window.AndroidBle && window.AndroidBle.showToast) {
+                window.AndroidBle.showToast(`${title} PDF converted to high-res image & saved!`);
+              }
+            } else {
+              // Stitch all pages vertically into one complete high-res document
+              const totalH = renderedCanvases.reduce((acc, c) => acc + c.height, 0);
+              const maxW = Math.max(...renderedCanvases.map(c => c.width));
+              const combinedCanvas = document.createElement('canvas');
+              combinedCanvas.width = maxW;
+              combinedCanvas.height = totalH;
+              const ctx = combinedCanvas.getContext('2d');
+              let curY = 0;
+              for (const c of renderedCanvases) {
+                ctx.drawImage(c, (maxW - c.width) / 2, curY);
+                curY += c.height;
+              }
+              const fullDataUrl = combinedCanvas.toDataURL('image/png');
+              const doc = (await getDocFromDb(docKey)) || { id: docKey, title };
+              doc.dataUrl = fullDataUrl;
+              doc.frontUrl = fullDataUrl;
+              doc.updatedAt = new Date().toISOString();
+              await putDocToDb(doc);
+              await loadAllSavedDocs();
+              if (window.AndroidBle && window.AndroidBle.showToast) {
+                window.AndroidBle.showToast(`${title} (${numPages} pages) saved as high-res document!`);
+              }
+            }
+            inputEl.value = '';
+            return;
+          }
+        } catch (pdfErr) {
+          console.warn('PDF processing error:', pdfErr);
+        }
+      }
+
+      // Image file handling
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = async () => {
+          const enhanced = processDocumentImage(img);
+          const targetSide = (mode === 'back') ? 'back' : 'front';
+          await saveDocSide(docKey, targetSide, enhanced, title);
+          await loadAllSavedDocs();
+
+          const flow = window.pendingScanFlow;
+          if (flow && flow.docKey === docKey && flow.currentStep === 'front' && !flow.singleOnly) {
+            flow.currentStep = 'back';
+            if (window.AndroidBle && window.AndroidBle.showToast) {
+              window.AndroidBle.showToast(`Front side saved! Now scan BACK side...`);
+            }
+            setTimeout(() => {
+              triggerScanSide(docKey, flow.title, 'back');
+            }, 700);
+          } else {
+            window.pendingScanFlow = null;
+            if (window.AndroidBle && window.AndroidBle.showToast) {
+              window.AndroidBle.showToast(`${title} saved in document vault!`);
+            }
+          }
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+      inputEl.value = '';
+    }
+
+    function loadImageFromCanvas(canvas) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.src = canvas.toDataURL('image/png');
+      });
+    }
+
+    async function stitchFrontAndBack(frontDataUrl, backDataUrl) {
+      return new Promise((resolve) => {
+        const imgF = new Image();
+        const imgB = new Image();
+        let loaded = 0;
+        function checkDone() {
+          loaded++;
+          if (loaded === 2) {
+            const w = Math.max(imgF.width, imgB.width);
+            const frontH = Math.round((imgF.height * w) / imgF.width);
+            const backH = Math.round((imgB.height * w) / imgB.width);
+            const sepGap = Math.round(w * 0.035);
+
+            const canvas = document.createElement('canvas');
+            canvas.width = w;
+            canvas.height = frontH + sepGap + backH;
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = '#0b0e14';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Front Side
+            ctx.drawImage(imgF, (w - imgF.width * (frontH / imgF.height)) / 2, 0, w, frontH);
+
+            // Separator Badge
+            ctx.fillStyle = '#1c2230';
+            ctx.fillRect(0, frontH, w, sepGap);
+            ctx.fillStyle = '#38bdf8';
+            ctx.font = `bold ${Math.max(12, Math.round(sepGap * 0.45))}px monospace`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('BACK SIDE', w / 2, frontH + sepGap / 2);
+
+            // Draw Back Side
+            ctx.drawImage(imgB, (w - imgB.width * (backH / imgB.height)) / 2, frontH + sepGap, w, backH);
+
+            resolve(canvas.toDataURL('image/png'));
+          }
+        }
+        imgF.onload = checkDone;
+        imgB.onload = checkDone;
+        imgF.src = frontDataUrl;
+        imgB.src = backDataUrl;
+      });
+    }
+
+    async function saveDocSide(docKey, side, dataUrl, title) {
+      const doc = (await getDocFromDb(docKey)) || { id: docKey, title: title || docKey.toUpperCase() };
+      const isTwoSided = (docKey !== 'taxtoken');
+      doc.isTwoSided = isTwoSided;
+
+      if (!isTwoSided) {
+        doc.dataUrl = dataUrl;
+        doc.frontUrl = dataUrl;
+      } else {
+        if (side === 'front') {
+          doc.frontUrl = dataUrl;
+        } else if (side === 'back') {
+          doc.backUrl = dataUrl;
+        } else {
+          doc.dataUrl = dataUrl;
+          doc.frontUrl = doc.frontUrl || dataUrl;
+        }
+
+        if (doc.frontUrl && doc.backUrl) {
+          doc.dataUrl = await stitchFrontAndBack(doc.frontUrl, doc.backUrl);
+        } else if (doc.frontUrl) {
+          doc.dataUrl = doc.frontUrl;
+        } else if (doc.backUrl) {
+          doc.dataUrl = doc.backUrl;
+        }
+      }
+
+      doc.updatedAt = new Date().toISOString();
+      await putDocToDb(doc);
+    }
+
+    function processDocumentImage(img) {
+      const canvas = document.createElement('canvas');
+      let w = img.width;
+      let h = img.height;
+      
+      const maxDim = 2200;
+      if (w > maxDim || h > maxDim) {
+        if (w > h) {
+          h = Math.round((h * maxDim) / w);
+          w = maxDim;
+        } else {
+          w = Math.round((w * maxDim) / h);
+          h = maxDim;
+        }
+      }
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+
+      // Edge & Corner Detection Margin Crop
+      const imgData = ctx.getImageData(0, 0, w, h);
+      const data = imgData.data;
+
+      let top = 0, bottom = h - 1, left = 0, right = w - 1;
+      function lum(x, y) {
+        const idx = (y * w + x) * 4;
+        return 0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2];
+      }
+
+      const bgLum = (lum(4, 4) + lum(w - 5, 4) + lum(4, h - 5) + lum(w - 5, h - 5)) / 4;
+      const hStep = Math.max(1, Math.floor(w / 35));
+      for (let y = 0; y < Math.floor(h * 0.25); y += 3) {
+        let diffCount = 0;
+        for (let x = Math.floor(w * 0.1); x < Math.floor(w * 0.9); x += hStep) {
+          if (Math.abs(lum(x, y) - bgLum) > 25) diffCount++;
+        }
+        if (diffCount > (w * 0.8 / hStep) * 0.4) { top = Math.max(0, y - 2); break; }
+      }
+
+      for (let y = h - 1; y > Math.floor(h * 0.75); y -= 3) {
+        let diffCount = 0;
+        for (let x = Math.floor(w * 0.1); x < Math.floor(w * 0.9); x += hStep) {
+          if (Math.abs(lum(x, y) - bgLum) > 25) diffCount++;
+        }
+        if (diffCount > (w * 0.8 / hStep) * 0.4) { bottom = Math.min(h - 1, y + 2); break; }
+      }
+
+      const vStep = Math.max(1, Math.floor(h / 35));
+      for (let x = 0; x < Math.floor(w * 0.25); x += 3) {
+        let diffCount = 0;
+        for (let y = Math.floor(h * 0.1); y < Math.floor(h * 0.9); y += vStep) {
+          if (Math.abs(lum(x, y) - bgLum) > 25) diffCount++;
+        }
+        if (diffCount > (h * 0.8 / vStep) * 0.4) { left = Math.max(0, x - 2); break; }
+      }
+
+      for (let x = w - 1; x > Math.floor(w * 0.75); x -= 3) {
+        let diffCount = 0;
+        for (let y = Math.floor(h * 0.1); y < Math.floor(h * 0.9); y += vStep) {
+          if (Math.abs(lum(x, y) - bgLum) > 25) diffCount++;
+        }
+        if (diffCount > (h * 0.8 / vStep) * 0.4) { right = Math.min(w - 1, x + 2); break; }
+      }
+
+      const cropW = Math.max(80, right - left);
+      const cropH = Math.max(80, bottom - top);
+      const cropCanvas = document.createElement('canvas');
+      cropCanvas.width = cropW;
+      cropCanvas.height = cropH;
+      const cropCtx = cropCanvas.getContext('2d');
+      cropCtx.drawImage(canvas, left, top, cropW, cropH, 0, 0, cropW, cropH);
+
+      // Contrast & Sharpness Enhancement
+      const cropData = cropCtx.getImageData(0, 0, cropW, cropH);
+      const cPixels = cropData.data;
+      for (let i = 0; i < cPixels.length; i += 4) {
+        for (let c = 0; c < 3; c++) {
+          let v = cPixels[i + c];
+          v = (v - 128) * 1.15 + 128;
+          cPixels[i + c] = Math.min(255, Math.max(0, v));
+        }
+      }
+      cropCtx.putImageData(cropData, 0, 0);
+
+      return cropCanvas.toDataURL('image/jpeg', 0.92);
+    }
+
+    // --- IndexedDB Document Persistence ---
+    let docDb = null;
+    function initDocDb() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open('N160DocumentsDB', 1);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains('docs')) {
+            db.createObjectStore('docs', { keyPath: 'id' });
+          }
+        };
+        req.onsuccess = (e) => {
+          docDb = e.target.result;
+          loadAllSavedDocs();
+          resolve(docDb);
+        };
+        req.onerror = (e) => reject(e);
+      });
+    }
+
+    function putDocToDb(doc) {
+      return new Promise((resolve, reject) => {
+        if (!docDb) return resolve();
+        const tx = docDb.transaction(['docs'], 'readwrite');
+        const store = tx.objectStore('docs');
+        store.put(doc);
+        tx.oncomplete = () => resolve();
+        tx.onerror = (e) => reject(e);
+      });
+    }
+
+    function getDocFromDb(id) {
+      return new Promise((resolve) => {
+        if (!docDb) return resolve(null);
+        const tx = docDb.transaction(['docs'], 'readonly');
+        const store = tx.objectStore('docs');
+        const req = store.get(id);
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => resolve(null);
+      });
+    }
+
+    function removeDocFromDb(id) {
+      return new Promise((resolve) => {
+        if (!docDb) return resolve();
+        const tx = docDb.transaction(['docs'], 'readwrite');
+        const store = tx.objectStore('docs');
+        store.delete(id);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => resolve();
+      });
+    }
+
+    async function loadAllSavedDocs() {
+      const keys = ['nid', 'licence', 'taxtoken', 'smartcard'];
+      for (const k of keys) {
+        const doc = await getDocFromDb(k);
+        const imgEl = document.getElementById(`img-${k}`);
+        const phEl = document.getElementById(`placeholder-${k}`);
+        const badgeEl = document.getElementById(`badge-${k}`);
+        const btnDel = document.getElementById(`btn-del-${k}`);
+        const frontSub = document.getElementById(`subbadge-${k}-front`);
+        const backSub = document.getElementById(`subbadge-${k}-back`);
+
+        if (doc && (doc.dataUrl || doc.frontUrl || doc.backUrl)) {
+          const displayUrl = doc.dataUrl || doc.frontUrl || doc.backUrl;
+          if (imgEl) { imgEl.src = displayUrl; imgEl.classList.remove('hidden'); }
+          if (phEl) phEl.classList.add('hidden');
+
+          if (k === 'taxtoken') {
+            if (badgeEl) {
+              badgeEl.innerText = 'SAVED';
+              badgeEl.className = 'text-[9px] px-1.5 py-0.5 rounded font-mono font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800/60';
+            }
+          } else {
+            const hasFront = !!doc.frontUrl;
+            const hasBack = !!doc.backUrl;
+
+            if (frontSub) {
+              frontSub.innerText = hasFront ? 'F: Ready' : 'F: Empty';
+              frontSub.className = hasFront ? 'px-1 py-0.2 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-600 font-bold' : 'px-1 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-500';
+            }
+            if (backSub) {
+              backSub.innerText = hasBack ? 'B: Ready' : 'B: Empty';
+              backSub.className = hasBack ? 'px-1 py-0.2 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-600 font-bold' : 'px-1 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-500';
+            }
+
+            if (badgeEl) {
+              if (hasFront && hasBack) {
+                badgeEl.innerText = 'BOTH SIDES';
+                badgeEl.className = 'text-[9px] px-1.5 py-0.5 rounded font-mono font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800/60';
+              } else if (hasFront) {
+                badgeEl.innerText = 'FRONT ONLY';
+                badgeEl.className = 'text-[9px] px-1.5 py-0.5 rounded font-mono font-bold bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-400 border border-amber-300 dark:border-amber-800/60';
+              } else {
+                badgeEl.innerText = 'BACK ONLY';
+                badgeEl.className = 'text-[9px] px-1.5 py-0.5 rounded font-mono font-bold bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-400 border border-amber-300 dark:border-amber-800/60';
+              }
+            }
+          }
+
+          if (btnDel) btnDel.classList.remove('hidden');
+        } else {
+          if (imgEl) { imgEl.src = ''; imgEl.classList.add('hidden'); }
+          if (phEl) phEl.classList.remove('hidden');
+          if (badgeEl) {
+            badgeEl.innerText = 'EMPTY';
+            badgeEl.className = 'text-[9px] px-1.5 py-0.5 rounded font-mono font-bold bg-[#f0ece1] dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-[#e0dad0] dark:border-slate-800';
+          }
+          if (frontSub) {
+            frontSub.innerText = 'F: Empty';
+            frontSub.className = 'px-1 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-500';
+          }
+          if (backSub) {
+            backSub.innerText = 'B: Empty';
+            backSub.className = 'px-1 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-500';
+          }
+          if (btnDel) btnDel.classList.add('hidden');
+        }
+      }
+      if (window.lucide && window.lucide.createIcons) lucide.createIcons();
+    }
+
+    async function deleteDoc(key) {
+      if (confirm('Are you sure you want to remove this document from the vault?')) {
+        await removeDocFromDb(key);
+        await loadAllSavedDocs();
+      }
+    }
+
+    async function viewDocFullscreen(key) {
+      const doc = await getDocFromDb(key);
+      if (!doc || (!doc.dataUrl && !doc.frontUrl && !doc.backUrl)) return;
+
+      activeFullscreenDoc = doc;
+      activeFullscreenSide = (doc.frontUrl && doc.backUrl) ? 'combined' : (doc.frontUrl ? 'front' : 'combined');
+
+      document.getElementById('fullscreen-doc-title').innerText = doc.title;
+      const tabs = document.getElementById('doc-side-tabs');
+      if (doc.isTwoSided && doc.frontUrl && doc.backUrl) {
+        tabs.classList.remove('hidden');
+      } else {
+        tabs.classList.add('hidden');
+      }
+
+      updateFullscreenImageView();
+      document.getElementById('doc-fullscreen-modal').classList.remove('hidden');
+      if (window.lucide && window.lucide.createIcons) lucide.createIcons();
+    }
+
+    function switchDocFullscreenSide(side) {
+      activeFullscreenSide = side;
+      updateFullscreenImageView();
+    }
+
+    function updateFullscreenImageView() {
+      if (!activeFullscreenDoc) return;
+      const fImg = document.getElementById('fullscreen-doc-img');
+      const tabs = ['combined', 'front', 'back'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`tab-side-${t}`);
+        if (btn) {
+          if (t === activeFullscreenSide) {
+            btn.className = 'px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-cyan-600 text-white';
+          } else {
+            btn.className = 'px-2 py-0.5 rounded text-[10px] font-mono font-bold text-slate-400 hover:text-white';
+          }
+        }
+      });
+
+      let targetUrl = activeFullscreenDoc.dataUrl;
+      if (activeFullscreenSide === 'front' && activeFullscreenDoc.frontUrl) {
+        targetUrl = activeFullscreenDoc.frontUrl;
+      } else if (activeFullscreenSide === 'back' && activeFullscreenDoc.backUrl) {
+        targetUrl = activeFullscreenDoc.backUrl;
+      } else {
+        targetUrl = activeFullscreenDoc.dataUrl || activeFullscreenDoc.frontUrl || activeFullscreenDoc.backUrl;
+      }
+
+      fImg.src = targetUrl;
+    }
+
+    function closeDocFullscreen() {
+      document.getElementById('doc-fullscreen-modal').classList.add('hidden');
+      activeFullscreenDoc = null;
+    }
+
+    function downloadActiveDoc() {
+      const fImg = document.getElementById('fullscreen-doc-img');
+      if (!fImg || !fImg.src) return;
+      const docName = (activeFullscreenDoc && activeFullscreenDoc.id ? activeFullscreenDoc.id : 'document').toUpperCase();
+      const filename = `N160_${docName}_${activeFullscreenSide}`;
+
+      if (window.AndroidBle && window.AndroidBle.saveImageToGallery) {
+        window.AndroidBle.saveImageToGallery(fImg.src, filename);
+      } else {
+        const a = document.createElement('a');
+        a.href = fImg.src;
+        a.download = `${filename}.png`;
+        a.click();
+      }
+    }
+
+    // --- Google Maps Live Navigation Listener Callbacks ---
+    window.onGmapsNavUpdate = function(maneuver, distanceMeters, street, roundaboutExit, fullText, totalDistMeters = 0, etaMinutes = 15) {
+      triggerConnectedPopupOnce();
+      updateGmapsLiveCueUI(maneuver, distanceMeters, street, roundaboutExit, fullText, totalDistMeters, etaMinutes);
+    };
+
+    window.onGmapsNavEnded = function() {
+      const titleEl = document.getElementById('gmaps-maneuver-title');
+      const streetEl = document.getElementById('gmaps-street-name');
+      const distEl = document.getElementById('gmaps-distance-text');
+      if (titleEl) titleEl.innerText = 'Navigation Completed';
+      if (streetEl) streetEl.innerText = 'Ready for next destination';
+      if (distEl) distEl.innerText = '-- m';
+    };
+
+    function updateGmapsLiveCueUI(maneuver, distanceMeters, street, roundaboutExit, fullText, totalDistMeters = 0, etaMinutes = 15) {
+      const titleEl = document.getElementById('gmaps-maneuver-title');
+      const streetEl = document.getElementById('gmaps-street-name');
+      const distEl = document.getElementById('gmaps-distance-text');
+      const exitBadge = document.getElementById('gmaps-roundabout-exit-badge');
+
+      let distDisplay = `${distanceMeters} m`;
+      if (distanceMeters >= 1000) {
+        distDisplay = (distanceMeters / 1000).toFixed(1) + ' km';
+      }
+      if (distEl) distEl.innerText = distDisplay;
+
+      if (titleEl) {
+        const readableMap = {
+          'A': 'Continue Straight', 'B': 'Continue Straight', 'C': 'Bear Left', 'D': 'Bear Right',
+          'E': 'Turn Slight Left', 'F': 'Turn Slight Right', 'G': 'Keep Straight', 'H': 'Destination Arrived',
+          'I': 'Turn Left', 'J': 'Turn Right', 'O': 'U-Turn Left', 'P': 'Make a U-Turn',
+          'U': 'At the Roundabout', 'Z': 'Take the Motorway Exit'
+        };
+        titleEl.innerText = readableMap[maneuver] || (fullText ? fullText.slice(0, 32) : 'Turn Cue');
+      }
+
+      if (streetEl) {
+        let streetInfo = street || 'Current Route';
+        if (totalDistMeters > 0) {
+          const etdKm = Math.round(totalDistMeters / 1000);
+          streetInfo += ` &bull; ETD ${etdKm} Km (${etaMinutes} min)`;
+        }
+        streetEl.innerHTML = streetInfo;
+      }
+
+      if (exitBadge) {
+        if (roundaboutExit && roundaboutExit > 0) {
+          exitBadge.innerText = `Exit ${roundaboutExit}`;
+          exitBadge.classList.remove('hidden');
+        } else {
+          exitBadge.classList.add('hidden');
+        }
+      }
+
+      const iconEl = document.getElementById('gmaps-maneuver-icon');
+      if (iconEl && window.lucide) {
+        const iconMap = {
+          'A': 'arrow-up', 'B': 'arrow-up', 'C': 'arrow-up-left', 'D': 'arrow-up-right',
+          'E': 'arrow-up-left', 'F': 'arrow-up-right', 'G': 'arrow-up', 'H': 'flag',
+          'I': 'corner-up-left', 'J': 'corner-up-right', 'O': 'rotate-ccw', 'P': 'rotate-cw',
+          'U': 'circle-dot', 'Z': 'git-merge'
+        };
+        const iconName = iconMap[maneuver] || 'navigation-2';
+        iconEl.setAttribute('data-lucide', iconName);
+        lucide.createIcons();
+      }
+    }
+
+    function requestGmapsSyncAccess() {
+      if (window.AndroidBle && window.AndroidBle.openNotificationAccessSettings) {
+        window.AndroidBle.openNotificationAccessSettings();
+      } else {
+        alert("Please enable Notification Access in Android Settings for N160 app.");
+      }
+    }
+
+    function checkGmapsSyncStatus() {
+      let isEnabled = false;
+      if (window.AndroidBle) {
+        if (typeof window.AndroidBle.isNotificationListenerEnabled === 'function') {
+          isEnabled = window.AndroidBle.isNotificationListenerEnabled();
+        } else if (typeof window.AndroidBle.isNotificationAccessGranted === 'function') {
+          isEnabled = window.AndroidBle.isNotificationAccessGranted();
+        }
+      }
+      const banner = document.getElementById('gmaps-perm-banner');
+      if (banner) {
+        if (isEnabled) {
+          banner.classList.add('hidden');
+        } else {
+          banner.classList.remove('hidden');
+        }
+      }
+    }
+
+    // --- Automatic GPS Ride Tracker Engine (BLE Connect/Disconnect Hook) ---
+    let isRideActive = false;
+    let rideStartTime = null;
+    let rideDistanceMeters = 0.0;
+    let rideTopSpeedKmh = 0.0;
+    let rideSpeedSamples = [];
+    let lastRideLat = null;
+    let lastRideLng = null;
+    let lastRideTime = null;
+    let rideTickerInterval = null;
+
+    function haversineMeters(lat1, lon1, lat2, lon2) {
+      const R = 6371000;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    function startAutoTripRecording(reason = "Pulsar Connected") {
+      if (isRideActive) return;
+      isRideActive = true;
+      rideStartTime = Date.now();
+      rideDistanceMeters = 0.0;
+      rideTopSpeedKmh = 0.0;
+      rideSpeedSamples = [];
+      lastRideLat = null;
+      lastRideLng = null;
+      lastRideTime = null;
+
+      // Update HUD status
+      const dot = document.getElementById('live-trip-dot');
+      const statusText = document.getElementById('live-trip-status');
+      const badge = document.getElementById('live-trip-badge');
+      const btnManual = document.getElementById('btn-manual-trip');
+
+      if (dot) dot.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
+      if (statusText) statusText.innerText = 'RIDE ACTIVE';
+      if (badge) badge.className = 'px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-800 text-[10px] font-mono font-bold text-emerald-700 dark:text-emerald-400 flex items-center space-x-1.5';
+      if (btnManual) { btnManual.innerText = 'Stop & Save'; btnManual.className = 'px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-[11px] transition'; }
+
+      // Start 1s UI ticker
+      clearInterval(rideTickerInterval);
+      rideTickerInterval = setInterval(updateLiveRideHUD, 1000);
+
+      // Ensure GPS tracking is active
+      startLiveGpsTracking();
+
+      if (window.AndroidBle && window.AndroidBle.showToast) {
+        window.AndroidBle.showToast('GPS Trip Logger started (Connected to Pulsar N160)');
+      }
+    }
+
+    function stopAutoTripRecording(reason = "Pulsar Disconnected") {
+      if (!isRideActive) return;
+      isRideActive = false;
+      clearInterval(rideTickerInterval);
+
+      const durationMs = Date.now() - (rideStartTime || Date.now());
+      const elapsedSec = Math.floor(durationMs / 1000);
+
+      // Only save if lasted >= 10 seconds or moved >= 50m
+      if (elapsedSec >= 10 || rideDistanceMeters >= 50) {
+        const distKm = (rideDistanceMeters / 1000).toFixed(1) + ' km';
+        const mins = Math.floor(elapsedSec / 60);
+        const secs = elapsedSec % 60;
+        const durStr = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+        const topSpeedStr = `${Math.round(rideTopSpeedKmh)} km/h`;
+
+        const elapsedHours = durationMs / 3600000;
+        const avgSpeed = elapsedHours > 0 ? Math.round((rideDistanceMeters / 1000) / elapsedHours) : 0;
+        const avgSpeedStr = `${avgSpeed} km/h`;
+
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ', ' +
+                        now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+        const tripRecord = {
+          date: dateStr,
+          distance: distKm,
+          duration: durStr,
+          topSpeed: topSpeedStr,
+          avgSpeed: avgSpeedStr
+        };
+
+        const existingTrips = JSON.parse(localStorage.getItem('n160_real_trips') || '[]');
+        existingTrips.unshift(tripRecord);
+        localStorage.setItem('n160_real_trips', JSON.stringify(existingTrips));
+        renderTripLogsTable();
+
+        if (window.AndroidBle && window.AndroidBle.showToast) {
+          window.AndroidBle.showToast(`Ride Saved: ${distKm} in ${durStr} (Top: ${topSpeedStr})`);
+        }
+      }
+
+      // Reset HUD to standby
+      const dot = document.getElementById('live-trip-dot');
+      const statusText = document.getElementById('live-trip-status');
+      const badge = document.getElementById('live-trip-badge');
+      const btnManual = document.getElementById('btn-manual-trip');
+
+      if (dot) dot.className = 'w-2 h-2 rounded-full bg-slate-400 dark:bg-slate-600';
+      if (statusText) statusText.innerText = 'STANDBY';
+      if (badge) badge.className = 'px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-[10px] font-mono font-bold text-slate-600 dark:text-slate-400 flex items-center space-x-1.5';
+      if (btnManual) { btnManual.innerText = 'Start Trip'; btnManual.className = 'px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] transition'; }
+    }
+
+    function manualToggleTrip() {
+      if (isRideActive) {
+        stopAutoTripRecording("Manual Stop");
+      } else {
+        startAutoTripRecording("Manual Start");
+      }
+    }
+
+    function updateLiveRideHUD() {
+      if (!isRideActive || !rideStartTime) return;
+      const elapsedSec = Math.floor((Date.now() - rideStartTime) / 1000);
+      const m = Math.floor(elapsedSec / 60).toString().padStart(2, '0');
+      const s = (elapsedSec % 60).toString().padStart(2, '0');
+
+      const hudDur = document.getElementById('hud-trip-dur');
+      const hudDist = document.getElementById('hud-trip-dist');
+      const hudTop = document.getElementById('hud-trip-top');
+      const hudAvg = document.getElementById('hud-trip-avg');
+
+      if (hudDur) hudDur.innerText = `${m}:${s}`;
+      if (hudDist) {
+        if (rideDistanceMeters >= 1000) {
+          hudDist.innerText = (rideDistanceMeters / 1000).toFixed(2) + ' km';
+        } else {
+          hudDist.innerText = Math.round(rideDistanceMeters) + ' m';
+        }
+      }
+      if (hudTop) hudTop.innerText = `${Math.round(rideTopSpeedKmh)} km/h`;
+
+      const elapsedHours = elapsedSec / 3600;
+      if (hudAvg && elapsedHours > 0) {
+        const avg = Math.round((rideDistanceMeters / 1000) / elapsedHours);
+        hudAvg.innerText = `${avg} km/h`;
+      }
+    }
+
+    function onGpsPositionReceived(pos) {
+      userLat = pos.coords.latitude;
+      userLng = pos.coords.longitude;
+      const now = Date.now();
+
+      if (isRideActive) {
+        if (lastRideLat !== null && lastRideLng !== null) {
+          const d = haversineMeters(lastRideLat, lastRideLng, userLat, userLng);
+          // Plausibility check: between 2m and 400m per fix (ignores jitter)
+          if (d >= 2 && d <= 400) {
+            rideDistanceMeters += d;
+          }
+        }
+
+        let speedKmh = 0;
+        if (pos.coords.speed !== null && pos.coords.speed >= 0) {
+          speedKmh = pos.coords.speed * 3.6;
+        } else if (lastRideTime && lastRideLat !== null) {
+          const dtHours = (now - lastRideTime) / 3600000;
+          if (dtHours > 0) {
+            const d = haversineMeters(lastRideLat, lastRideLng, userLat, userLng);
+            speedKmh = (d / 1000) / dtHours;
+          }
+        }
+
+        // Cap speed reading at 180 km/h to discard GPS teleport jumps
+        if (speedKmh > 0 && speedKmh < 180) {
+          if (speedKmh > rideTopSpeedKmh) {
+            rideTopSpeedKmh = speedKmh;
+          }
+          rideSpeedSamples.push(speedKmh);
+          const hudSpeed = document.getElementById('hud-trip-speed');
+          if (hudSpeed) hudSpeed.innerText = `${Math.round(speedKmh)} km/h`;
+        }
+
+        lastRideLat = userLat;
+        lastRideLng = userLng;
+        lastRideTime = now;
+        updateLiveRideHUD();
+      }
+    }
+
+    function startLiveGpsTracking() {
+      if ('geolocation' in navigator && gpsWatchId === null) {
+        gpsWatchId = navigator.geolocation.watchPosition(
+          onGpsPositionReceived,
+          (err) => console.warn('GPS location error:', err),
+          { enableHighAccuracy: true, maximumAge: 3000, timeout: 10000 }
+        );
+      }
+    }
+
+    function renderTripLogsTable() {
+      const trips = JSON.parse(localStorage.getItem('n160_real_trips') || '[]');
+      const tbody = document.getElementById('trip-logs-body');
+      if (!tbody) return;
+
+      if (trips.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">No recorded trips yet. Ride with Bluetooth connected to log data.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = trips.map(t => `
+        <tr class="hover:bg-slate-50 dark:hover:bg-[#11151e] transition">
+          <td class="p-2.5 font-bold text-slate-800 dark:text-slate-200">${t.date}</td>
+          <td class="p-2.5 text-cyan-700 dark:text-cyan-400 font-bold">${t.distance}</td>
+          <td class="p-2.5 text-slate-600 dark:text-slate-300">${t.duration}</td>
+          <td class="p-2.5 text-amber-700 dark:text-amber-400">${t.topSpeed}</td>
+          <td class="p-2.5 text-emerald-700 dark:text-emerald-400">${t.avgSpeed}</td>
+        </tr>
+      `).join('');
+    }
+
+    function clearTripLogs() {
+      if (confirm('Clear recorded trip logs?')) {
+        localStorage.removeItem('n160_real_trips');
+        renderTripLogsTable();
+      }
+    }
+
+    // --- Bluetooth Telematics Engine ---
+    function triggerBleScan() {
+      if (window.AndroidBle && window.AndroidBle.startScan) {
+        document.getElementById('ble-device-list').innerHTML = `
+          <div class="p-4 text-center text-xs text-cyan-600 dark:text-cyan-400 font-mono animate-pulse">
+            Scanning...
+          </div>
+        `;
+        window.AndroidBle.startScan();
+      } else {
+        alert("BLE interface active on Android app.");
+      }
+    }
+
+    function triggerBleDisconnect() {
+      if (window.AndroidBle && window.AndroidBle.disconnect) {
+        window.AndroidBle.disconnect();
+      }
+    }
+
+    function connectToDevice(address) {
+      if (window.AndroidBle && window.AndroidBle.connect) {
+        window.AndroidBle.connect(address);
+      }
+    }
+
+        window.onBleDeviceFound = function(name, address, rssi) {
+      const list = document.getElementById('ble-device-list');
+      const isPulsar = (name && (name.toLowerCase().includes('pulsar') || name.toLowerCase().includes('bajaj') || name.toLowerCase().includes('n160') || name.toLowerCase().includes('otc'))) || (address && address.startsWith('FC:DE:C5'));
+      
+      // Automatic connection to already paired or known cluster
+      const savedMac = localStorage.getItem('n160_paired_cluster_mac');
+      const isBonded = window.AndroidBle && window.AndroidBle.isBonded && window.AndroidBle.isBonded(address);
+      if (!window.n160Connected && !window.n160Connecting) {
+        if ((savedMac && savedMac.toLowerCase() === address.toLowerCase()) || (isBonded && isPulsar)) {
+          window.n160Connecting = true;
+          console.log('Auto-connecting to detected paired/bonded cluster:', address);
+          connectDevice(address);
+        }
+      }
+      const itemHtml = `
+        <div class="p-3 rounded-xl bg-[#f0ece1] dark:bg-[#0e121a] border ${isPulsar ? 'border-cyan-500/80 shadow-md' : 'border-[#e0dad0] dark:border-[#1a202c]'} flex items-center justify-between">
+          <div>
+            <div class="font-bold text-xs ${isPulsar ? 'text-cyan-700 dark:text-cyan-300' : 'text-slate-900 dark:text-white'} flex items-center space-x-1.5">
+              <span>${name || 'Pulsar N160 Cluster'}</span>
+              ${isPulsar ? '<span class="text-[9px] px-1.5 py-0.2 rounded bg-cyan-100 dark:bg-cyan-950 text-cyan-700 dark:text-cyan-400 font-mono">MATCH</span>' : ''}
+            </div>
+            <div class="text-[10px] text-slate-500 dark:text-slate-400 font-mono">${address} &bull; ${rssi} dBm</div>
+          </div>
+          <button onclick="connectToDevice('${address}')" class="px-3 py-1.5 rounded-lg ${isPulsar ? 'bg-cyan-600 text-white font-extrabold' : 'bg-slate-200 dark:bg-[#181f2c] text-slate-700 dark:text-slate-300'} text-xs transition">
+            Connect
+          </button>
+        </div>
+      `;
+      if (list.innerHTML.includes('Scanning for') || list.innerHTML.includes('Tap "Scan for Cluster"')) {
+        list.innerHTML = itemHtml;
+      } else if (!list.innerHTML.includes(address)) {
+        list.innerHTML += itemHtml;
+      }
+    };
+
+    window.onBleStatusUpdate = function(status) {
+      document.getElementById('bt-status-text').innerText = status;
+    };
+
+    window.onBleConnected = function(address) {
+      document.getElementById('bt-status-dot').className = 'w-1.5 h-1.5 rounded-full bg-emerald-500';
+      document.getElementById('bt-status-text').innerText = 'Connected: ' + (address || 'Pulsar N160');
+
+      document.getElementById('ble-banner-icon').className = 'w-3 h-3 rounded-full bg-emerald-500';
+      document.getElementById('ble-banner-name').innerText = 'Pulsar N160 Connected';
+      document.getElementById('ble-banner-sub').innerText = address || '0x1000 Service Active';
+      document.getElementById('ble-disconnect-btn').classList.remove('hidden');
+
+      const statTbt = document.getElementById('stat-tbt-char');
+      if (statTbt) { statTbt.innerText = 'Connected'; statTbt.className = 'text-cyan-700 dark:text-cyan-400 font-bold'; }
+      const statPhone = document.getElementById('stat-phone-char');
+      if (statPhone) { statPhone.innerText = 'Syncing (1s)'; statPhone.className = 'text-cyan-700 dark:text-cyan-400 font-bold'; }
+      const statGen = document.getElementById('stat-gen-char');
+      if (statGen) { statGen.innerText = 'Ready'; statGen.className = 'text-emerald-700 dark:text-emerald-400 font-bold'; }
+
+      // 1. Trigger automatic GPS Ride Recording!
+      startAutoTripRecording(address);
+
+      // 2. Show Popup with Motorcycle Picture & 2-Second Redirect!
+      triggerConnectedPopupOnce();
+    };
+
+    window.onBleDisconnected = function(address) {
+      window.n160Connected = false;
+      window.n160Connecting = false;
+      hasShownConnectedPopup = false;
+      document.getElementById('bt-status-dot').className = 'w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-600';
+      document.getElementById('bt-status-text').innerText = 'Bluetooth: Disconnected';
+
+      document.getElementById('ble-banner-icon').className = 'w-3 h-3 rounded-full bg-slate-400 dark:bg-slate-600';
+      document.getElementById('ble-banner-name').innerText = 'No Bike Connected';
+      document.getElementById('ble-banner-sub').innerText = 'Turn on Pulsar N160 ignition and tap Scan';
+      document.getElementById('ble-disconnect-btn').classList.add('hidden');
+
+      // Automatically Stop & Save GPS Ride Log!
+      stopAutoTripRecording("Bluetooth Disconnected");
+    };
+
+    window.onBleError = function(msg) {
+      if (window.AndroidBle && window.AndroidBle.showToast) {
+        window.AndroidBle.showToast(msg);
+      }
+    };
+
+    window.onHeartbeatTick = function(count, batt) {
+      const hb = document.getElementById('ct-heartbeat-status');
+      if (hb) hb.innerText = `Heartbeat #${count} Active (0xC0) • Battery ${batt}%`;
+    };
+
+    // --- CT Maneuver & Alert Simulators ---
+    function testManeuver(code, dist = 200, road = "Mirpur Road", exit = 0, totalDist = 0, eta = 15) {
+      if (window.AndroidBle && window.AndroidBle.sendTurnByTurnWithExit) {
+        window.AndroidBle.sendTurnByTurnWithExit(String(code), parseInt(dist, 10), String(road), parseInt(exit, 10), parseInt(totalDist, 10), parseInt(eta, 10));
+        if (window.AndroidBle.showToast) {
+          window.AndroidBle.showToast(`Maneuver '${code}' (${dist}m) sent to Cluster LCD!`);
+        }
+      } else if (window.AndroidBle && window.AndroidBle.sendTurnByTurn) {
+        window.AndroidBle.sendTurnByTurn(code, dist, road);
+      }
+    }
+
+    function testSmsAlert(sender = 'Mom', text = 'Reach home safe') {
+      if (window.AndroidBle && window.AndroidBle.simulateSmsAlert) {
+        window.AndroidBle.simulateSmsAlert(sender);
+        if (window.AndroidBle.showToast) {
+          window.AndroidBle.showToast(`SMS Alert from '${sender}' sent (Envelope icon on cluster)`);
+        }
+      }
+    }
+
+    function testWhatsAppAlert(sender = 'Rider Club', text = 'Meet at fuel station') {
+      if (window.AndroidBle && window.AndroidBle.simulateWhatsAppAlert) {
+        window.AndroidBle.simulateWhatsAppAlert(sender);
+        if (window.AndroidBle.showToast) {
+          window.AndroidBle.showToast(`WhatsApp notification from '${sender}' sent to cluster`);
+        }
+      }
+    }
+
+    function testIncomingCall(caller = 'Rider Friend') {
+      if (window.AndroidBle && window.AndroidBle.simulateIncomingCall) {
+        window.AndroidBle.simulateIncomingCall(caller);
+        if (window.AndroidBle.showToast) {
+          window.AndroidBle.showToast(`Caller ID '${caller}' sent to cluster LCD`);
+        }
+      }
+    }
+
+    function endClusterCall() {
+      if (window.AndroidBle && window.AndroidBle.endCall) {
+        window.AndroidBle.endCall();
+        if (window.AndroidBle.showToast) {
+          window.AndroidBle.showToast('Cluster call dismissed');
+        }
+      }
+    }
+
+    // =========================================================================
+    // SYSTEM SOFTWARE UPDATE CHECKER & AUTO-UPDATER
+    // =========================================================================
+    let latestUpdateInfo = null;
+    let currentAppVersionName = '1.3.0';
+    let currentAppVersionCode = 4;
+
+    function initAppVersion() {
+      try {
+        if (window.AndroidBle && window.AndroidBle.getAppVersionName) {
+          currentAppVersionName = window.AndroidBle.getAppVersionName();
+          currentAppVersionCode = window.AndroidBle.getAppVersionCode();
+        }
+      } catch (e) {
+        console.warn('App version lookup', e);
+      }
+      const badge = document.getElementById('app-version-badge');
+      if (badge) badge.textContent = 'v' + currentAppVersionName;
+      const currTxt = document.getElementById('update-curr-version');
+      if (currTxt) currTxt.textContent = 'v' + currentAppVersionName;
+      const latestTxt = document.getElementById('update-latest-version-txt');
+      if (latestTxt) latestTxt.textContent = 'N160 UGP v' + currentAppVersionName;
+    }
+
+    function openUpdateModal() {
+      const modal = document.getElementById('app-update-modal');
+      if (modal) modal.classList.remove('hidden');
+      if (window.lucide && window.lucide.createIcons) lucide.createIcons();
+    }
+
+    function closeUpdateModal() {
+      const modal = document.getElementById('app-update-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function triggerCheckUpdate(isManual = false) {
+      if (isManual) {
+        openUpdateModal();
+        const checking = document.getElementById('update-modal-checking');
+        const latest = document.getElementById('update-modal-latest');
+        const available = document.getElementById('update-modal-available');
+        const downloadBtn = document.getElementById('update-download-btn');
+        if (checking) checking.classList.remove('hidden');
+        if (latest) latest.classList.add('hidden');
+        if (available) available.classList.add('hidden');
+        if (downloadBtn) downloadBtn.classList.add('hidden');
+      }
+
+      if (window.AndroidBle && window.AndroidBle.checkForUpdate) {
+        window.AndroidBle.checkForUpdate(isManual);
+      } else {
+        // Fallback fetch for browser / PWA
+        fetch('https://raw.githubusercontent.com/hyderus/n160tbt/main/version.json?t=' + Date.now())
+          .then(r => r.json())
+          .then(data => {
+            if (data.versionCode > currentAppVersionCode) {
+              window.onAppUpdateAvailable(data.versionName, data.versionCode, data.releaseNotes, data.apkUrl);
+              if (isManual) {
+                window.onUpdateCheckResult('AVAILABLE', JSON.stringify(data));
+              }
+            } else {
+              if (isManual) {
+                window.onUpdateCheckResult('LATEST', JSON.stringify({ versionName: currentAppVersionName, versionCode: currentAppVersionCode }));
+              }
+            }
+          })
+          .catch(err => {
+            if (isManual) {
+              window.onUpdateCheckResult('ERROR', JSON.stringify({ error: err.message || 'Network error' }));
+            }
+          });
+      }
+    }
+
+    window.onAppUpdateAvailable = function(versionName, versionCode, releaseNotes, apkUrl) {
+      latestUpdateInfo = { versionName, versionCode, releaseNotes, apkUrl };
+      const dot = document.getElementById('update-badge-dot');
+      if (dot) dot.classList.remove('hidden');
+      const banner = document.getElementById('update-alert-banner');
+      const bannerSub = document.getElementById('update-banner-sub');
+      if (banner && bannerSub) {
+        bannerSub.textContent = `Version ${versionName} is ready to install`;
+        banner.classList.remove('hidden');
+      }
+    };
+
+    window.onUpdateCheckResult = function(status, detailsJson) {
+      const checking = document.getElementById('update-modal-checking');
+      const latest = document.getElementById('update-modal-latest');
+      const available = document.getElementById('update-modal-available');
+      const downloadBtn = document.getElementById('update-download-btn');
+
+      if (checking) checking.classList.add('hidden');
+
+      let data = {};
+      try {
+        data = typeof detailsJson === 'string' ? JSON.parse(detailsJson) : detailsJson;
+      } catch (e) {}
+
+      if (status === 'AVAILABLE') {
+        latestUpdateInfo = data;
+        if (checking) checking.classList.add('hidden');
+        if (latest) latest.classList.add('hidden');
+        if (available) available.classList.remove('hidden');
+        if (downloadBtn) {
+          downloadBtn.classList.remove('hidden');
+          downloadBtn.disabled = false;
+          downloadBtn.innerHTML = '<i data-lucide="download" class="w-4 h-4"></i><span>Download & Install Update</span>';
+        }
+        const availTxt = document.getElementById('update-avail-version');
+        if (availTxt) availTxt.textContent = 'v' + (data.versionName || '1.3');
+        const badgeTxt = document.getElementById('update-new-version-badge');
+        if (badgeTxt) badgeTxt.textContent = `v${data.versionName || '1.3'} Available`;
+        const notesTxt = document.getElementById('update-release-notes');
+        if (notesTxt) notesTxt.textContent = data.releaseNotes || 'Bug fixes and performance enhancements.';
+        const dot = document.getElementById('update-badge-dot');
+        if (dot) dot.classList.remove('hidden');
+        openUpdateModal();
+      } else if (status === 'LATEST') {
+        if (checking) checking.classList.add('hidden');
+        if (available) available.classList.add('hidden');
+        if (downloadBtn) downloadBtn.classList.add('hidden');
+        if (latest) {
+          latest.classList.remove('hidden');
+          latest.innerHTML = `
+            <i data-lucide="check-circle-2" class="w-8 h-8 text-emerald-500 mx-auto"></i>
+            <div class="font-bold text-xs text-slate-900 dark:text-white">This is the latest version!</div>
+            <div id="update-latest-version-txt" class="text-[11px] text-slate-500 dark:text-slate-400 font-mono">N160 UGP v${data.versionName || currentAppVersionName} is up to date</div>
+          `;
+        }
+        const dot = document.getElementById('update-badge-dot');
+        if (dot) dot.classList.add('hidden');
+        const banner = document.getElementById('update-alert-banner');
+        if (banner) banner.classList.add('hidden');
+        openUpdateModal();
+      } else {
+        // ERROR
+        if (checking) checking.classList.add('hidden');
+        if (available) available.classList.add('hidden');
+        if (downloadBtn) downloadBtn.classList.add('hidden');
+        if (latest) {
+          latest.classList.remove('hidden');
+          latest.innerHTML = `
+            <i data-lucide="alert-circle" class="w-8 h-8 text-amber-500 mx-auto"></i>
+            <div class="font-bold text-xs text-slate-900 dark:text-white">Unable to Check for Updates</div>
+            <div class="text-[11px] text-slate-500 dark:text-slate-400 font-mono">${data.error || 'Check internet connection and try again.'}</div>
+          `;
+        }
+        openUpdateModal();
+      }
+      if (window.lucide && window.lucide.createIcons) lucide.createIcons();
+    };
+
+    function triggerDownloadUpdate() {
+      const apkUrl = (latestUpdateInfo && latestUpdateInfo.apkUrl) ? latestUpdateInfo.apkUrl : 'https://raw.githubusercontent.com/hyderus/n160tbt/main/n160.apk';
+      const progressContainer = document.getElementById('update-progress-container');
+      const downloadBtn = document.getElementById('update-download-btn');
+      const statusTxt = document.getElementById('update-progress-status');
+
+      if (progressContainer) progressContainer.classList.remove('hidden');
+      if (statusTxt) statusTxt.textContent = 'Downloading update...';
+      if (downloadBtn) {
+        downloadBtn.disabled = true;
+        downloadBtn.classList.add('opacity-75');
+        downloadBtn.innerHTML = '<div class="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></div><span>Downloading...</span>';
+      }
+
+      if (window.AndroidBle && window.AndroidBle.downloadAndInstallUpdate) {
+        window.AndroidBle.downloadAndInstallUpdate(apkUrl);
+      } else {
+        window.open(apkUrl, '_blank');
+      }
+    }
+
+    window.onUpdateDownloadProgress = function(percent, currentBytes, totalBytes) {
+      const bar = document.getElementById('update-progress-bar');
+      const pctTxt = document.getElementById('update-progress-pct');
+      const bytesTxt = document.getElementById('update-progress-bytes');
+      const statusTxt = document.getElementById('update-progress-status');
+
+      if (bar) bar.style.width = percent + '%';
+      if (pctTxt) pctTxt.textContent = percent + '%';
+      if (bytesTxt && totalBytes > 0) {
+        const curMB = (currentBytes / (1024 * 1024)).toFixed(1);
+        const totMB = (totalBytes / (1024 * 1024)).toFixed(1);
+        bytesTxt.textContent = `${curMB} MB / ${totMB} MB`;
+      }
+      if (percent >= 100) {
+        if (statusTxt) statusTxt.textContent = 'Download Complete! Launching installer...';
+      }
+    };
+
+    window.onUpdateDownloadError = function(errMsg) {
+      const downloadBtn = document.getElementById('update-download-btn');
+      const statusTxt = document.getElementById('update-progress-status');
+      if (statusTxt) statusTxt.textContent = 'Download Failed: ' + errMsg;
+      if (downloadBtn) {
+        downloadBtn.disabled = false;
+        downloadBtn.classList.remove('opacity-75');
+        downloadBtn.innerHTML = '<i data-lucide="refresh-cw" class="w-4 h-4"></i><span>Retry Download</span>';
+      }
+      if (window.lucide && window.lucide.createIcons) lucide.createIcons();
+    };
+
+    // --- Initialization on Load ---
+    window.addEventListener('DOMContentLoaded', async () => {
+      switchTab('telematics');
+      initAppVersion();
+      if (window.lucide && window.lucide.createIcons) {
+        lucide.createIcons();
+      }
+      const isDark = document.documentElement.classList.contains('dark');
+      updateThemeUI(isDark);
+      startLiveGpsTracking();
+      checkGmapsSyncStatus();
+      renderTripLogsTable();
+      await initDocDb();
+      window.addEventListener('focus', checkGmapsSyncStatus);
+
+      // Silent update check in background on start
+      setTimeout(() => {
+        triggerCheckUpdate(false);
+      }, 3000);
+
+      // Auto-reconnect: Check bonded cluster and trigger scan
+      try {
+        if (window.AndroidBle && window.AndroidBle.getBondedClusterAddress) {
+          const bondedAddr = window.AndroidBle.getBondedClusterAddress();
+          if (bondedAddr) {
+            localStorage.setItem('n160_paired_cluster_mac', bondedAddr);
+          }
+        }
+      } catch (e) {
+        console.warn('Bonded check error', e);
+      }
+      setTimeout(() => {
+        if (!window.n160Connected && !window.n160Connecting) {
+          triggerBleScan();
+        }
+      }, 500);
+    });
+  </script>
+
+</body>
+</html>

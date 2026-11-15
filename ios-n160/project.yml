@@ -1,0 +1,18 @@
+name: N160
+options:
+  bundleIdPrefix: com.bajaj
+targets:
+  N160:
+    type: application
+    platform: iOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: N160
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.bajaj.n160
+      PRODUCT_NAME: N160
+      INFOPLIST_FILE: N160/Info.plist
+      ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+      CODE_SIGNING_ALLOWED: NO
+      CODE_SIGNING_REQUIRED: NO
+      SWIFT_VERSION: "5.0"
