@@ -66,9 +66,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Upload to latest release (e.g. v1.3.0) if release exists
-          LATEST_TAG=$(gh release list --limit 1 | awk '{print $3}')
-          if [ -n "$LATEST_TAG" ]; then
+          # Upload to latest release (e.g. v1.3.1) if release exists
+          LATEST_TAG=$(gh release list --limit 1 --json tagName --jq '.[0].tagName' 2>/dev/null || true)
+          if [ -n "$LATEST_TAG" ] && [ "$LATEST_TAG" != "null" ]; then
             echo "Uploading n160.ipa to release $LATEST_TAG"
             gh release upload "$LATEST_TAG" n160.ipa --clobber || true
           fi

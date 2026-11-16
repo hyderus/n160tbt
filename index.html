@@ -2515,11 +2515,6 @@
       await initDocDb();
       window.addEventListener('focus', checkGmapsSyncStatus);
 
-      // Silent update check in background on start
-      setTimeout(() => {
-        triggerCheckUpdate(false);
-      }, 3000);
-
       // Auto-reconnect: Check bonded cluster and trigger scan
       try {
         if (window.AndroidBle && window.AndroidBle.getBondedClusterAddress) {

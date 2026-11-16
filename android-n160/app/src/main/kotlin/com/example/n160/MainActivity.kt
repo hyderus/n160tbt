@@ -320,13 +320,6 @@ class MainActivity : ComponentActivity(), BajajBleManager.BleListener, GoogleMap
         // Check for pending APK install after returning from settings
         if (::updateManager.isInitialized) {
             updateManager.checkPendingInstallOnResume()
-            // Silent update check in background
-            updateManager.checkForUpdate(isManualCheck = false) { result ->
-                if (result is AppUpdateManager.UpdateCheckResult.Available) {
-                    val js = "if (window.onAppUpdateAvailable) { window.onAppUpdateAvailable('${result.info.versionName}', ${result.info.versionCode}, '${result.info.releaseNotes.replace("'", "\\'").replace("\n", " ")}', '${result.info.apkUrl}'); }"
-                    webView.post { webView.evaluateJavascript(js, null) }
-                }
-            }
         }
     }
 
