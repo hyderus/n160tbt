@@ -1,6 +1,6 @@
 {
-  "versionCode": 6,
-  "versionName": "1.3.2",
-  "apkUrl": "https://github.com/hyderus/n160tbt/releases/download/v1.3.2/n160.apk",
-  "releaseNotes": "N160 UGP v1.3.2: Native GPS hardware speed & background trip logger; fixed live speed tracking and top speed recording in ride history table."
+  "versionCode": 7,
+  "versionName": "1.3.3",
+  "apkUrl": "https://github.com/hyderus/n160tbt/releases/download/v1.3.3/n160.apk",
+  "releaseNotes": "N160 UGP v1.3.3: Fixed Google Maps navigation drop/premature NAV OFF on motorcycle cluster with multi-language cues, robust notification listener & debounced state tracking; resolved duplicate trip log entries in ride history."
 }

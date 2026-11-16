@@ -73,10 +73,10 @@ class ViewController: UIViewController, WKScriptMessageHandler, WKNavigationDele
                 window.webkit.messageHandlers.iosBle.postMessage({ action: 'launchCameraScan', docKey: docKey, side: side });
             },
             getAppVersionName: function() {
-                return '1.3.2';
+                return '1.3.3';
             },
             getAppVersionCode: function() {
-                return 6;
+                return 7;
             },
             setSystemBarTheme: function(isDark) {
                 window.webkit.messageHandlers.iosBle.postMessage({ action: 'setSystemBarTheme', isDark: isDark });
@@ -383,8 +383,8 @@ class ViewController: UIViewController, WKScriptMessageHandler, WKNavigationDele
                   let serverName = json["versionName"] as? String else {
                 return
             }
-            let currentCode = 6
-            let currentName = "1.3.2"
+            let currentCode = 7
+            let currentName = "1.3.3"
             DispatchQueue.main.async {
                 if serverCode > currentCode {
                     let notes = (json["releaseNotes"] as? String ?? "").replacingOccurrences(of: "'", with: "\\'").replacingOccurrences(of: "\n", with: " ")

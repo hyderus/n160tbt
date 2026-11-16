@@ -340,8 +340,21 @@ class BajajBleService : Service() {
             val prefs = getSharedPreferences("n160_prefs", Context.MODE_PRIVATE)
             val existing = prefs.getString("n160_real_trips", "[]") ?: "[]"
             val arr = org.json.JSONArray(existing)
+            val newTrip = org.json.JSONObject(tripJsonStr)
+            val newDate = newTrip.optString("date")
+            val newDist = newTrip.optString("distance")
+
+            // Deduplication: prevent duplicate trip entry if matching date and distance already exist
+            for (i in 0 until arr.length()) {
+                val item = arr.getJSONObject(i)
+                if (item.optString("date") == newDate && item.optString("distance") == newDist) {
+                    Log.i(TAG, "Duplicate trip detected in BajajBleService (date: $newDate, dist: $newDist). Skipping duplicate.")
+                    return
+                }
+            }
+
             val newArr = org.json.JSONArray()
-            newArr.put(org.json.JSONObject(tripJsonStr))
+            newArr.put(newTrip)
             for (i in 0 until minOf(arr.length(), 49)) {
                 newArr.put(arr.getJSONObject(i))
             }

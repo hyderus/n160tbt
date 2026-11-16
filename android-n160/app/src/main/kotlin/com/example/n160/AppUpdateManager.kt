@@ -96,9 +96,9 @@ class AppUpdateManager(private val context: Context) {
                 @Suppress("DEPRECATION")
                 context.packageManager.getPackageInfo(context.packageName, 0)
             }
-            packageInfo.versionName ?: "1.3.2"
+            packageInfo.versionName ?: "1.3.3"
         } catch (e: Exception) {
-            "1.3.2"
+            "1.3.3"
         }
     }
 
@@ -130,7 +130,7 @@ class AppUpdateManager(private val context: Context) {
                 val json = JSONObject(jsonString)
 
                 val serverCode = json.optInt("versionCode", 0)
-                val serverName = json.optString("versionName", "1.3.2")
+                val serverName = json.optString("versionName", "1.3.3")
                 val apkUrl = json.optString("apkUrl", "https://raw.githubusercontent.com/hyderus/n160tbt/main/n160.apk")
                 val releaseNotes = json.optString("releaseNotes", "New update available")
                 val publishedAt = json.optString("publishedAt", "")
