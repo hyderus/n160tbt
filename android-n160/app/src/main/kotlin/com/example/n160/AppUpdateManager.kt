@@ -84,7 +84,7 @@ class AppUpdateManager(private val context: Context) {
                 packageInfo.versionCode
             }
         } catch (e: Exception) {
-            3
+            8
         }
     }
 
@@ -96,9 +96,9 @@ class AppUpdateManager(private val context: Context) {
                 @Suppress("DEPRECATION")
                 context.packageManager.getPackageInfo(context.packageName, 0)
             }
-            packageInfo.versionName ?: "1.3.3"
+            packageInfo.versionName ?: "1.3.4"
         } catch (e: Exception) {
-            "1.3.3"
+            "1.3.4"
         }
     }
 

@@ -32,7 +32,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 
-class MainActivity : ComponentActivity(), BajajBleManager.BleListener, GoogleMapsNotificationListener.Companion.GmapsListener, BajajBleService.RideListener {
+class MainActivity : ComponentActivity(), BajajBleManager.BleListener, GoogleMapsNotificationListener.Companion.GmapsListener {
 
     companion object {
         private const val TAG = "MainActivity"
@@ -116,7 +116,6 @@ class MainActivity : ComponentActivity(), BajajBleManager.BleListener, GoogleMap
                 bleManager.removeListener(this@MainActivity)
                 bleManager = svc.bleManager
                 bleManager.addListener(this@MainActivity)
-                svc.addRideListener(this@MainActivity)
 
                 // Sync current state if already connected
                 if (bleManager.isConnected) {
@@ -127,7 +126,6 @@ class MainActivity : ComponentActivity(), BajajBleManager.BleListener, GoogleMap
 
         override fun onServiceDisconnected(name: ComponentName?) {
             Log.w(TAG, "Disconnected from BajajBleService")
-            BajajBleService.instance?.removeRideListener(this@MainActivity)
             serviceBound = false
         }
     }
@@ -319,10 +317,6 @@ class MainActivity : ComponentActivity(), BajajBleManager.BleListener, GoogleMap
             bleManager.startScan()
         }
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            BajajBleService.instance?.startGpsTracking()
-        }
-
         // Check for pending APK install after returning from settings
         if (::updateManager.isInitialized) {
             updateManager.checkPendingInstallOnResume()
@@ -332,7 +326,6 @@ class MainActivity : ComponentActivity(), BajajBleManager.BleListener, GoogleMap
     override fun onDestroy() {
         super.onDestroy()
         GoogleMapsNotificationListener.setListener(null)
-        BajajBleService.instance?.removeRideListener(this)
         if (serviceBound) {
             try {
                 unbindService(serviceConnection)
@@ -342,13 +335,6 @@ class MainActivity : ComponentActivity(), BajajBleManager.BleListener, GoogleMap
             serviceBound = false
         }
         bleManager.removeListener(this)
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == PERMISSION_REQUEST_CODE) {
-            BajajBleService.instance?.startGpsTracking()
-        }
     }
 
     private fun checkAndRequestPermissions() {
@@ -460,18 +446,6 @@ class MainActivity : ComponentActivity(), BajajBleManager.BleListener, GoogleMap
 
     override fun onGmapsNavEnded() {
         val js = "if (window.onGmapsNavEnded) { window.onGmapsNavEnded(); }"
-        webView.post { webView.evaluateJavascript(js, null) }
-    }
-
-    // --- BajajBleService.RideListener ---
-
-    override fun onLocationUpdate(lat: Double, lng: Double, speedKmh: Float, accuracy: Float) {
-        val js = "if (window.onGpsLocationUpdate) { window.onGpsLocationUpdate($lat, $lng, $speedKmh, $accuracy); }"
-        webView.post { webView.evaluateJavascript(js, null) }
-    }
-
-    override fun onTripMetrics(isActive: Boolean, distMeters: Double, currentSpeedKmh: Float, topSpeedKmh: Float, elapsedSec: Long) {
-        val js = "if (window.onLiveTripMetrics) { window.onLiveTripMetrics($isActive, $distMeters, $currentSpeedKmh, $topSpeedKmh, $elapsedSec); }"
         webView.post { webView.evaluateJavascript(js, null) }
     }
 
@@ -716,69 +690,16 @@ class MainActivity : ComponentActivity(), BajajBleManager.BleListener, GoogleMap
         }
 
         @JavascriptInterface
-        fun startTrip(): Boolean {
-            BajajBleService.instance?.startRide("WebUI Request")
-            return true
-        }
-
-        @JavascriptInterface
-        fun stopTrip(): String {
-            return BajajBleService.instance?.stopRide("WebUI Request") ?: ""
-        }
-
-        @JavascriptInterface
-        fun getNativeTrips(): String {
-            val prefs = getSharedPreferences("n160_prefs", Context.MODE_PRIVATE)
-            return prefs.getString("n160_real_trips", "[]") ?: "[]"
-        }
-
-        @JavascriptInterface
-        fun saveTripLog(tripJson: String) {
-            try {
-                val prefs = getSharedPreferences("n160_prefs", Context.MODE_PRIVATE)
-                val existing = prefs.getString("n160_real_trips", "[]") ?: "[]"
-                val arr = org.json.JSONArray(existing)
-                val newTrip = org.json.JSONObject(tripJson)
-                val newDate = newTrip.optString("date")
-                val newDist = newTrip.optString("distance")
-
-                // Deduplication: prevent duplicate trip entry if matching date and distance already exist
-                for (i in 0 until arr.length()) {
-                    val item = arr.getJSONObject(i)
-                    if (item.optString("date") == newDate && item.optString("distance") == newDist) {
-                        Log.i(TAG, "Duplicate trip detected in WebAppInterface.saveTripLog (date: $newDate, dist: $newDist). Skipping duplicate.")
-                        return
-                    }
-                }
-
-                val newArr = org.json.JSONArray()
-                newArr.put(newTrip)
-                for (i in 0 until minOf(arr.length(), 49)) {
-                    newArr.put(arr.getJSONObject(i))
-                }
-                prefs.edit().putString("n160_real_trips", newArr.toString()).apply()
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed saving trip log from web", e)
-            }
-        }
-
-        @JavascriptInterface
-        fun clearNativeTrips() {
-            val prefs = getSharedPreferences("n160_prefs", Context.MODE_PRIVATE)
-            prefs.edit().remove("n160_real_trips").apply()
-        }
-
-        @JavascriptInterface
         fun isNativeApp(): Boolean = true
 
         @JavascriptInterface
         fun getAppVersionName(): String {
-            return if (::updateManager.isInitialized) updateManager.getCurrentVersionName() else "1.3.3"
+            return if (::updateManager.isInitialized) updateManager.getCurrentVersionName() else "1.3.4"
         }
 
         @JavascriptInterface
         fun getAppVersionCode(): Int {
-            return if (::updateManager.isInitialized) updateManager.getCurrentVersionCode() else 7
+            return if (::updateManager.isInitialized) updateManager.getCurrentVersionCode() else 8
         }
 
         @JavascriptInterface

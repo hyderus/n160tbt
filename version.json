@@ -1,6 +1,6 @@
 {
-  "versionCode": 7,
-  "versionName": "1.3.3",
-  "apkUrl": "https://github.com/hyderus/n160tbt/releases/download/v1.3.3/n160.apk",
-  "releaseNotes": "N160 UGP v1.3.3: Fixed Google Maps navigation drop/premature NAV OFF on motorcycle cluster with multi-language cues, robust notification listener & debounced state tracking; resolved duplicate trip log entries in ride history."
+  "versionCode": 8,
+  "versionName": "1.3.4",
+  "apkUrl": "https://github.com/hyderus/n160tbt/releases/download/v1.3.4/n160.apk",
+  "releaseNotes": "N160 UGP v1.3.4: Restored proven v1.3.1 navigation stability baseline, fixed trip log speed calculations, ensured strict trip deduplication, and manual-only update checks."
 }
